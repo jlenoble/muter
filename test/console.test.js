@@ -123,10 +123,28 @@ World!`);
     }));
 
     it(`muter captures messages without muting console.${method}` +
-      ` by calling 'capture'`);
+      ` by calling 'capture'`, unmutedCallback(function() {
+      this.muter.capture();
+
+      expect(logger[method]).not.to.equal(originalLoggingFunction);
+
+      logger[method](
+        'This is an unmuted test message that should be captured by muter');
+      logger[method]('And this is a second unmuted test message');
+
+      expect(this.muter.getLogs()).to.equal(
+        `This is an unmuted test message that should be captured by muter
+And this is a second unmuted test message`);
+    }));
 
     it(`A muter uncaptures console.${method}'s messages` +
-      ` by calling 'uncapture'`);
+      ` by calling 'uncapture'`, unmutedCallback(function() {
+      this.muter.capture();
+      expect(logger[method]).not.to.equal(originalLoggingFunction);
+
+      this.muter.uncapture();
+      expect(logger[method]).to.equal(originalLoggingFunction);
+    }));
 
   });
 

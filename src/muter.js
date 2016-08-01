@@ -51,6 +51,26 @@ function muterFactory(logger = console, method = 'log') {
 
         return color ? chalk[color](calls) : calls;
       }
+    },
+
+    capture() {
+      this.unmute();
+
+      if (usesStdout) {
+        sinon.stub(logger, method, function(...args) {
+          return process.stdout.write(args.join(' ') + '\n');
+        });
+      }
+
+      if (usesStderr) {
+        sinon.stub(logger, method, function(...args) {
+          return process.stderr.write(args.join(' ') + '\n');
+        });
+      }
+    },
+
+    uncapture() {
+      this.unmute();
     }
 
   };
