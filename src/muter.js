@@ -1,4 +1,6 @@
 import sinon from 'sinon';
+import chalk from 'chalk';
+import util from 'util';
 
 function muterFactory(logger = console, method = 'log') {
 
@@ -42,7 +44,7 @@ function muterFactory(logger = console, method = 'log') {
         var calls = logger[method].getCalls();
 
         calls = calls.map(call => {
-          return call.args.join(' ');
+          return util.format(...call.args);
         });
 
         calls = calls.join('\n');

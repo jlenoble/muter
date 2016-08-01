@@ -19,7 +19,7 @@ methods.forEach(method => {
 
   describe(`Testing Muter factory with console.${method}:`, function() {
 
-    const unmutedCallbackFactory = function(func) {
+    const unmutedCallback = function(func) {
       // Wrapping Mocha callbacks is necessary due to the fact that these tests
       // interfere with Mocha's logs, so we undo output capturing before Mocha
       // reports its results (and can't use 'after' as 'it' messages are
@@ -48,14 +48,14 @@ methods.forEach(method => {
     });
 
     it(`A muter mutes console.${method} by calling 'mute'`,
-      unmutedCallbackFactory(function() {
+      unmutedCallback(function() {
       this.muter.mute();
 
       expect(logger[method]).not.to.equal(originalLoggingFunction);
     }));
 
     it(`A muter unmutes console.${method} by calling 'unmute'`,
-      unmutedCallbackFactory(function() {
+      unmutedCallback(function() {
       this.muter.mute();
       expect(logger[method]).not.to.equal(originalLoggingFunction);
 
@@ -64,7 +64,7 @@ methods.forEach(method => {
     }));
 
     it(`A muter returns muted messages of console.${method}` +
-      ` by calling 'getLogs'`, unmutedCallbackFactory(function() {
+      ` by calling 'getLogs'`, unmutedCallback(function() {
       this.muter.mute();
 
       logger[method]('Hello');
@@ -74,13 +74,59 @@ methods.forEach(method => {
 World!`);
     }));
 
+    it(`Once unmuted, muter's method 'getLogs' returns nothing`,
+      unmutedCallback(function() {
+      this.muter.mute();
+
+      logger[method]('Hello');
+      logger[method]('World!');
+
+      expect(this.muter.getLogs()).to.equal(`Hello
+World!`);
+
+      this.muter.unmute();
+
+      expect(this.muter.getLogs()).to.be.undefined;
+    }));
+
+    it(`Testing various args for console.${method}`,
+      unmutedCallback(function() {
+      // 2 args
+      this.muter.mute();
+
+      logger[method]('Hello', 'World!');
+
+      expect(this.muter.getLogs()).to.equal('Hello World!');
+
+      this.muter.unmute();
+
+      expect(this.muter.getLogs()).to.be.undefined;
+
+      // Formatted args
+      this.muter.mute();
+
+      logger[method]('%s Mr %s', 'Hello', 'World!');
+
+      expect(this.muter.getLogs()).to.equal('Hello Mr World!');
+
+      this.muter.unmute();
+
+      expect(this.muter.getLogs()).to.be.undefined;
+
+      // Error object
+      this.muter.mute();
+
+      const error = new Error('Controlled test error');
+      logger[method](error);
+
+      expect(this.muter.getLogs()).to.equal(error.stack);
+    }));
+
     it(`muter captures messages without muting console.${method}` +
       ` by calling 'capture'`);
 
     it(`A muter uncaptures console.${method}'s messages` +
       ` by calling 'uncapture'`);
-
-    it(`Once unmuted, muter's method 'getLogs' returns nothing`);
 
   });
 
