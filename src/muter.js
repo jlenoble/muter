@@ -35,6 +35,20 @@ function muterFactory(logger = console, method = 'log') {
       if (usesStderr && process.stderr.write.restore) {
         process.stderr.write.restore();
       }
+    },
+
+    getLogs(color) {
+      if (logger[method].restore) {
+        var calls = logger[method].getCalls();
+
+        calls = calls.map(call => {
+          return call.args.join(' ');
+        });
+
+        calls = calls.join('\n');
+
+        return color ? chalk[color](calls) : calls;
+      }
     }
 
   };

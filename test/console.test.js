@@ -19,10 +19,11 @@ methods.forEach(method => {
 
   describe(`Testing Muter factory with console.${method}:`, function() {
 
-    const unmuteCallbackFactory = function(func) {
+    const unmutedCallbackFactory = function(func) {
       // Wrapping Mocha callbacks is necessary due to the fact that these tests
       // interfere with Mocha's logs, so we undo output capturing before Mocha
-      // reports its results
+      // reports its results (and can't use 'after' as 'it' messages are
+      // output right away)
       return function() {
         try {
           func.call(this);
@@ -47,14 +48,14 @@ methods.forEach(method => {
     });
 
     it(`A muter mutes console.${method} by calling 'mute'`,
-      unmuteCallbackFactory(function() {
+      unmutedCallbackFactory(function() {
       this.muter.mute();
 
       expect(logger[method]).not.to.equal(originalLoggingFunction);
     }));
 
     it(`A muter unmutes console.${method} by calling 'unmute'`,
-      unmuteCallbackFactory(function() {
+      unmutedCallbackFactory(function() {
       this.muter.mute();
       expect(logger[method]).not.to.equal(originalLoggingFunction);
 
@@ -63,7 +64,15 @@ methods.forEach(method => {
     }));
 
     it(`A muter returns muted messages of console.${method}` +
-      ` by calling 'getLogs'`);
+      ` by calling 'getLogs'`, unmutedCallbackFactory(function() {
+      this.muter.mute();
+
+      logger[method]('Hello');
+      logger[method]('World!');
+
+      expect(this.muter.getLogs()).to.equal(`Hello
+World!`);
+    }));
 
     it(`muter captures messages without muting console.${method}` +
       ` by calling 'capture'`);
