@@ -3,15 +3,30 @@ import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import jscs from 'gulp-jscs';
 import sourcemaps from 'gulp-sourcemaps';
+import plumber from 'gulp-plumber';
 import del from 'del';
 import path from 'path';
 
+const originalSrc = gulp.src;
+gulp.src = function() {
+  return originalSrc.apply(gulp, arguments)
+    .pipe(plumber({
+      errorHandler: function(err) {
+        console.error(err);
+        this.emit('end');
+      }
+    }));
+};
+
 const buildDir = 'build';
 const srcGlob = 'src/muter.js';
-const testGlob = 'test/**/*.js';
+const testSrcGlob = 'test/*.test.js';
+
+const allSrcGlob = [srcGlob, testSrcGlob];
+const testBuildGlob = path.join(buildDir, testSrcGlob);
 
 const build = () => {
-  return gulp.src([srcGlob, testGlob], {base: process.cwd()})
+  return gulp.src(allSrcGlob, {base: process.cwd()})
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write())
@@ -19,8 +34,14 @@ const build = () => {
 };
 
 const test = () => {
-  return gulp.src(path.join(buildDir, testGlob))
+  return gulp.src(testBuildGlob)
     .pipe(mocha());
+};
+
+const watch = (done) => {
+  gulp.watch(allSrcGlob, build);
+  gulp.watch(testBuildGlob, test);
+  done();
 };
 
 const dist = () => {
@@ -39,6 +60,11 @@ const clean = () => {
 gulp.task('clean', clean);
 gulp.task('build', build);
 gulp.task('test', gulp.series('build', test));
+
+gulp.task('watch', watch);
+gulp.task('tdd', gulp.series('watch', 'build'));
+
 gulp.task('dist', dist);
 gulp.task('prepublish', gulp.series('test', 'clean', 'dist'));
-gulp.task('default', gulp.parallel('test'));
+
+gulp.task('default', gulp.parallel('tdd'));

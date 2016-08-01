@@ -7,11 +7,60 @@ const methods = ['log', 'warn', 'error'];
 
 methods.forEach(method => {
 
+  function unmute() {
+    logger[method].restore && logger[method].restore();
+    process.stdout && process.stdout.write.restore &&
+      process.stdout.write.restore();
+    process.stderr && process.stderr.write.restore &&
+      process.stderr.write.restore();
+  }
+
+  const originalLoggingFunction = logger[method];
+
   describe(`Testing Muter factory with console.${method}:`, function() {
 
-    it(`A muter mutes console.${method} by calling 'mute'`);
+    const unmuteCallbackFactory = function(func) {
+      // Wrapping Mocha callbacks is necessary due to the fact that these tests
+      // interfere with Mocha's logs, so we undo output capturing before Mocha
+      // reports its results
+      return function() {
+        try {
+          func.call(this);
 
-    it(`A muter unmutes console.${method} by calling 'unmute'`);
+          // Mocha shouldn't output a message if test passes since
+          // stdout/stderr is muted, so unmute before leaving
+          unmute();
+        } catch (e) {
+          // In order for Mocha to print all info when failing, unmute before
+          // rethrowing
+          unmute();
+
+          throw e;
+        }
+      };
+    };
+
+    before(function() {
+      expect(logger[method]).to.equal(originalLoggingFunction);
+
+      this.muter = muterFactory(logger, method);
+    });
+
+    it(`A muter mutes console.${method} by calling 'mute'`,
+      unmuteCallbackFactory(function() {
+      this.muter.mute();
+
+      expect(logger[method]).not.to.equal(originalLoggingFunction);
+    }));
+
+    it(`A muter unmutes console.${method} by calling 'unmute'`,
+      unmuteCallbackFactory(function() {
+      this.muter.mute();
+      expect(logger[method]).not.to.equal(originalLoggingFunction);
+
+      this.muter.unmute();
+      expect(logger[method]).to.equal(originalLoggingFunction);
+    }));
 
     it(`A muter returns muted messages of console.${method}` +
       ` by calling 'getLogs'`);

@@ -4,7 +4,7 @@
   "description": "A node module to mute and/or capture console logs",
   "main": "index.js",
   "scripts": {
-    "test": "gulp"
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "gulp-babel": "^6.1.2",
     "gulp-jscs": "^4.0.0",
     "gulp-mocha": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
     "gulp-sourcemaps": "^1.6.0"
   },
   "dependencies": {
