@@ -1,4 +1,4 @@
-import muterFactory from '../src/muter';
+import Muter from '../src/muter';
 
 import {expect} from 'chai';
 
@@ -44,7 +44,7 @@ methods.forEach(method => {
     before(function() {
       expect(logger[method]).to.equal(originalLoggingFunction);
 
-      this.muter = muterFactory(logger, method);
+      this.muter = Muter(logger, method);
     });
 
     it(`A muter mutes console.${method} by calling 'mute'`,
@@ -147,6 +147,7 @@ And this is a second unmuted test message`);
     }));
 
     if (logger === console && method === 'error') {
+
       it(`README.md usage example works fine`, unmutedCallback(function() {
         this.muter.mute(); // console.error outputs nothing anymore
         expect(logger[method]).not.to.equal(originalLoggingFunction);

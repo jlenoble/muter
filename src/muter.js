@@ -2,41 +2,41 @@ import sinon from 'sinon';
 import chalk from 'chalk';
 import util from 'util';
 
-function muterFactory(logger = console, method = 'log') {
+function Muter(logger = console, method = 'log') {
 
   const usesStdout = process.stdout && logger === console &&
     (method === 'log' || method === 'info');
   const usesStderr = process.stderr && logger === console &&
     (method === 'warn' || method === 'error');
 
+  function unmute() {
+    if (logger[method].restore) {logger[method].restore();}
+
+    if (usesStdout && process.stdout.write.restore) {
+      process.stdout.write.restore();
+    }
+
+    if (usesStderr && process.stderr.write.restore) {
+      process.stderr.write.restore();
+    }
+  }
+
   return {
 
     mute() {
-      this.unmute();
-
       sinon.stub(logger, method);
 
-      if (usesStdout) {
+      if (usesStdout && !process.stdout.write.restore) {
         // Silence also process.stdout for full muting.
         sinon.stub(process.stdout, 'write');
-      }
-
-      if (usesStderr) {
+      } else if (usesStderr && !process.stderr.write.restore) {
         // Silence also process.stderr for full muting.
         sinon.stub(process.stderr, 'write');
       }
     },
 
     unmute() {
-      if (logger[method].restore) {logger[method].restore();}
-
-      if (usesStdout && process.stdout.write.restore) {
-        process.stdout.write.restore();
-      }
-
-      if (usesStderr && process.stderr.write.restore) {
-        process.stderr.write.restore();
-      }
+      unmute();
     },
 
     getLogs(color) {
@@ -54,15 +54,11 @@ function muterFactory(logger = console, method = 'log') {
     },
 
     capture() {
-      this.unmute();
-
       if (usesStdout) {
         sinon.stub(logger, method, function(...args) {
           return process.stdout.write(util.format(...args) + '\n');
         });
-      }
-
-      if (usesStderr) {
+      } else if (usesStderr) {
         sinon.stub(logger, method, function(...args) {
           return process.stderr.write(util.format(...args) + '\n');
         });
@@ -70,11 +66,11 @@ function muterFactory(logger = console, method = 'log') {
     },
 
     uncapture() {
-      this.unmute();
+      unmute();
     }
 
   };
 
 }
 
-export default muterFactory;
+export default Muter;
