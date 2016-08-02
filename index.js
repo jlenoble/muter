@@ -20,7 +20,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function muterFactory() {
+function Muter() {
   var logger = arguments.length <= 0 || arguments[0] === undefined ? console : arguments[0];
   var method = arguments.length <= 1 || arguments[1] === undefined ? 'log' : arguments[1];
 
@@ -28,34 +28,34 @@ function muterFactory() {
   var usesStdout = process.stdout && logger === console && (method === 'log' || method === 'info');
   var usesStderr = process.stderr && logger === console && (method === 'warn' || method === 'error');
 
+  function _unmute() {
+    if (logger[method].restore) {
+      logger[method].restore();
+    }
+
+    if (usesStdout && process.stdout.write.restore) {
+      process.stdout.write.restore();
+    }
+
+    if (usesStderr && process.stderr.write.restore) {
+      process.stderr.write.restore();
+    }
+  }
+
   return {
     mute: function mute() {
-      this.unmute();
-
       _sinon2.default.stub(logger, method);
 
-      if (usesStdout) {
+      if (usesStdout && !process.stdout.write.restore) {
         // Silence also process.stdout for full muting.
         _sinon2.default.stub(process.stdout, 'write');
-      }
-
-      if (usesStderr) {
+      } else if (usesStderr && !process.stderr.write.restore) {
         // Silence also process.stderr for full muting.
         _sinon2.default.stub(process.stderr, 'write');
       }
     },
     unmute: function unmute() {
-      if (logger[method].restore) {
-        logger[method].restore();
-      }
-
-      if (usesStdout && process.stdout.write.restore) {
-        process.stdout.write.restore();
-      }
-
-      if (usesStderr && process.stderr.write.restore) {
-        process.stderr.write.restore();
-      }
+      _unmute();
     },
     getLogs: function getLogs(color) {
       if (logger[method].restore) {
@@ -71,32 +71,20 @@ function muterFactory() {
       }
     },
     capture: function capture() {
-      this.unmute();
-
       if (usesStdout) {
         _sinon2.default.stub(logger, method, function () {
-          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-
-          return process.stdout.write(args.join(' ') + '\n');
+          return process.stdout.write(_util2.default.format.apply(_util2.default, arguments) + '\n');
         });
-      }
-
-      if (usesStderr) {
+      } else if (usesStderr) {
         _sinon2.default.stub(logger, method, function () {
-          for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-          }
-
-          return process.stderr.write(args.join(' ') + '\n');
+          return process.stderr.write(_util2.default.format.apply(_util2.default, arguments) + '\n');
         });
       }
     },
     uncapture: function uncapture() {
-      this.unmute();
+      _unmute();
     }
   };
 }
 
-exports.default = muterFactory;
+exports.default = Muter;
