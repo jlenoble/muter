@@ -58,13 +58,13 @@ function muterFactory(logger = console, method = 'log') {
 
       if (usesStdout) {
         sinon.stub(logger, method, function(...args) {
-          return process.stdout.write(args.join(' ') + '\n');
+          return process.stdout.write(util.format(...args) + '\n');
         });
       }
 
       if (usesStderr) {
         sinon.stub(logger, method, function(...args) {
-          return process.stderr.write(args.join(' ') + '\n');
+          return process.stderr.write(util.format(...args) + '\n');
         });
       }
     },
