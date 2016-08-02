@@ -4,6 +4,7 @@ import mocha from 'gulp-mocha';
 import jscs from 'gulp-jscs';
 import sourcemaps from 'gulp-sourcemaps';
 import plumber from 'gulp-plumber';
+import rename from 'gulp-rename';
 import del from 'del';
 import path from 'path';
 
@@ -50,6 +51,7 @@ const dist = () => {
     .pipe(jscs.reporter())
     .pipe(jscs.reporter('fail'))
     .pipe(babel())
+    .pipe(rename('index.js'))
     .pipe(gulp.dest('.'));
 };
 
@@ -62,7 +64,7 @@ gulp.task('build', build);
 gulp.task('test', gulp.series('build', test));
 
 gulp.task('watch', watch);
-gulp.task('tdd', gulp.series('watch', 'build'));
+gulp.task('tdd', gulp.series('test', 'watch'));
 
 gulp.task('dist', dist);
 gulp.task('prepublish', gulp.series('test', 'clean', 'dist'));
