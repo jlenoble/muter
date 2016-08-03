@@ -117,7 +117,7 @@ Test console.error 3, should be muted
 Test console.error 4, should be muted`);
   }));
 
-  it(`console.warn and console.error do interfere`, unmutedCallback(
+  it(`console.warn and console.error don't interfere`, unmutedCallback(
   function() {
     this.warn.mute();
 

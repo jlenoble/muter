@@ -109,4 +109,46 @@ describe(`Testing README.md examples:`, function() {
     expect(console.error).to.equal(originalLoggingFunctions.error);
   }));
 
+  it('README.md concurrency example works fine', unmutedCallback(function() {
+    const log = Muter(console, 'log');
+    const log2 = Muter(console, 'log');
+    const error = Muter(console, 'error');
+
+    expect(log === log2).to.be.true;
+    // true
+
+    expect(log === error).to.be.false;
+    // false
+
+    log.mute();
+    expect(console.log).not.to.equal(originalLoggingFunctions.log);
+
+    error.capture();
+    expect(console.error).not.to.equal(originalLoggingFunctions.error);
+
+    console.log('muted log message');
+    // Prints nothing
+
+    console.error('captured/unmuted error message');
+    // Prints 'captured/unmuted error message'
+
+    console.warn('uncaptured/unmuted warning');
+    // Prints 'uncaptured/unmuted warning'
+
+    console.warn(log.getLogs('blue'), ': expected and printed in blue');
+    // Prints 'muted log message' in blue
+    expect(log.getLogs()).to.equal('muted log message');
+
+    console.warn(error.getLogs('yellow'),
+      ': expected and printed in yellow');
+    // Prints 'captured/unmuted error message' in yellow
+    expect(error.getLogs()).to.equal('captured/unmuted error message');
+
+    log.unmute();
+    expect(console.log).to.equal(originalLoggingFunctions.log);
+
+    error.uncapture();
+    expect(console.error).to.equal(originalLoggingFunctions.error);
+  }));
+
 });

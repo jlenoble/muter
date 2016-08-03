@@ -71,6 +71,45 @@ console.log(muter.getLogs());
 muter.unmute();
 ```
 
+### Using several Muters concurrently
+
+Muters are singletons. They have a one to one correspondence to pairs (logger, method), as those are global anyway.
+
+But you can use several different Muters concurrently, as long as they were set with different pairs (logger, method).
+
+```js
+const log = Muter(console, 'log');
+const log2 = Muter(console, 'log');
+const error = Muter(console, 'error');
+
+log === log2;
+// true
+
+log === error;
+// false
+
+log.mute();
+error.capture();
+
+console.log('muted log message');
+// Prints nothing
+
+console.error('captured/unmuted error message');
+// Prints 'captured/unmuted error message'
+
+console.warn('uncaptured/unmuted warning');
+// Prints 'uncaptured/unmuted warning'
+
+console.warn(log.getLogs('blue'));
+// Prints 'muted log message' in blue
+
+console.warn(error.getLogs('yellow'));
+// Prints 'captured/unmuted error message' in yellow
+
+log.unmute();
+error.uncapture();
+```
+
 ## License
 
 Muter is [MIT licensed](./LICENSE).
