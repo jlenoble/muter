@@ -2,7 +2,15 @@ import sinon from 'sinon';
 import chalk from 'chalk';
 import util from 'util';
 
+var muters = new Map();
+
 function Muter(logger = console, method = 'log') {
+
+  var muter = muters.get(logger[method]);
+
+  if (muter) {
+    return muter;
+  }
 
   const usesStdout = process.stdout && logger === console &&
     (method === 'log' || method === 'info');
@@ -21,7 +29,7 @@ function Muter(logger = console, method = 'log') {
     }
   }
 
-  return {
+  muter = {
 
     mute() {
       sinon.stub(logger, method);
@@ -70,6 +78,10 @@ function Muter(logger = console, method = 'log') {
     }
 
   };
+
+  muters.set(logger[method], muter);
+
+  return muter;
 
 }
 
