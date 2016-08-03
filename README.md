@@ -15,8 +15,8 @@ const muter = Muter(console, 'error');
 
 * mute(): To silence the logger and capture the logs.
 * unmute(): To restore the logger to its normal use.
-* capture(): To capture the logs without silence the logger.
-* uncapture(): An alias for 'unmute'.
+* capture(): To capture the logs without silencing the logger.
+* uncapture(): Same as unmute().
 * getLogs(color): Returns a colored string concatenation of all the logs. color is an optional argument. If not provided, text will be printed in default stdout/stderr color (most likely white on black or black on white). Colors are as defined by the [chalk](https://github.com/chalk/chalk) module.
 
 ```js
@@ -55,20 +55,20 @@ console.log(muter.getLogs('red'));
 Muter supports the same format strings as console in [Node.js](https://nodejs.org) as it utilizes util.format from [util module](https://nodejs.org/api/util.html#util_util_format_format) under the hood.
 
 ```js
-this.muter.mute();
+muter.mute();
 
 for (let i = 1; i < 4; i++) {
-  console.error('%d) %s', i, 'Cute test message ' + i);
+  console.error('%d) %s %d', i, 'Cute test message', i);
   // Prints nothing
 }
 
-console.log(this.muter.getLogs());
+console.log(muter.getLogs());
 // Prints:
 // 1) Cute test message 1
 // 2) Cute test message 2
 // 3) Cute test message 3
 
-this.muter.unmute();
+muter.unmute();
 ```
 
 ## License
