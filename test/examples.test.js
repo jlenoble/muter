@@ -92,7 +92,7 @@ describe(`Testing README.md examples:`, function() {
     expect(console.error).not.to.equal(originalLoggingFunctions.error);
 
     for (let i = 1; i < 4; i++) {
-      console.error('%d) %s', i, 'Cute test message ' + i);
+      console.error('%d) %s %d', i, 'Cute test message', i);
       // Prints nothing
     }
 

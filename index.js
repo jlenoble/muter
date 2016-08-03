@@ -20,10 +20,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function Muter() {
-  var logger = arguments.length <= 0 || arguments[0] === undefined ? console : arguments[0];
-  var method = arguments.length <= 1 || arguments[1] === undefined ? 'log' : arguments[1];
+var muters = new Map();
 
+function Muter(logger, method) {
+
+  var muter = muters.get(logger[method]);
+
+  if (muter) {
+    return muter;
+  }
 
   var usesStdout = process.stdout && logger === console && (method === 'log' || method === 'info');
   var usesStderr = process.stderr && logger === console && (method === 'warn' || method === 'error');
@@ -42,14 +47,19 @@ function Muter() {
     }
   }
 
-  return {
+  muter = {
     mute: function mute() {
+      var options = arguments.length <= 0 || arguments[0] === undefined ? {
+        muteProcessStdout: false,
+        muteProcessStderr: false
+      } : arguments[0];
+
       _sinon2.default.stub(logger, method);
 
-      if (usesStdout && !process.stdout.write.restore) {
+      if (options.muteProcessStdout) {
         // Silence also process.stdout for full muting.
         _sinon2.default.stub(process.stdout, 'write');
-      } else if (usesStderr && !process.stderr.write.restore) {
+      } else if (options.muteProcessStderr) {
         // Silence also process.stderr for full muting.
         _sinon2.default.stub(process.stderr, 'write');
       }
@@ -85,6 +95,10 @@ function Muter() {
       _unmute();
     }
   };
+
+  muters.set(logger[method], muter);
+
+  return muter;
 }
 
 exports.default = Muter;

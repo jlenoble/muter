@@ -4,7 +4,7 @@ import util from 'util';
 
 var muters = new Map();
 
-function Muter(logger = console, method = 'log') {
+function Muter(logger, method) {
 
   var muter = muters.get(logger[method]);
 
@@ -31,13 +31,16 @@ function Muter(logger = console, method = 'log') {
 
   muter = {
 
-    mute() {
+    mute(options = {
+      muteProcessStdout: false,
+      muteProcessStderr: false
+    }) {
       sinon.stub(logger, method);
 
-      if (usesStdout && !process.stdout.write.restore) {
+      if (options.muteProcessStdout) {
         // Silence also process.stdout for full muting.
         sinon.stub(process.stdout, 'write');
-      } else if (usesStderr && !process.stderr.write.restore) {
+      } else if (options.muteProcessStderr) {
         // Silence also process.stderr for full muting.
         sinon.stub(process.stderr, 'write');
       }
