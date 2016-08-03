@@ -81,6 +81,7 @@ But you can use several different Muters concurrently, as long as they were set 
 const log = Muter(console, 'log');
 const log2 = Muter(console, 'log');
 const error = Muter(console, 'error');
+const warn = Muter(console, 'warn');
 
 log === log2;
 // true
@@ -88,26 +89,41 @@ log === log2;
 log === error;
 // false
 
+warn === error;
+// false
+
+log === warn;
+// false
+
 log.mute();
 error.capture();
+warn.mute();
 
 console.log('muted log message');
 // Prints nothing
 
 console.error('captured/unmuted error message');
-// Prints 'captured/unmuted error message'
+// Prints on stderr 'captured/unmuted error message'
 
-console.warn('uncaptured/unmuted warning');
-// Prints 'uncaptured/unmuted warning'
+console.warn('muted warning');
+// Prints nothing
 
 console.warn(log.getLogs('blue'));
-// Prints 'muted log message' in blue
+// Prints nothing
 
 console.warn(error.getLogs('yellow'));
-// Prints 'captured/unmuted error message' in yellow
+// Prints nothing
 
 log.unmute();
 error.uncapture();
+
+console.log(warn.getLogs());
+// Prints on stdout:
+// 'muted warning' in default color
+// 'muted log message' in blue
+// 'captured/unmuted error message' in yellow
+
+warn.unmute();
 ```
 
 ## License

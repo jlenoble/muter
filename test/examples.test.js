@@ -1,6 +1,7 @@
 import Muter from '../src/muter';
 
 import {expect} from 'chai';
+import chalk from 'chalk';
 
 function unmute() {
   console.log.restore && console.log.restore();
@@ -113,12 +114,12 @@ describe(`Testing README.md examples:`, function() {
     const log = Muter(console, 'log');
     const log2 = Muter(console, 'log');
     const error = Muter(console, 'error');
+    const warn = Muter(console, 'warn');
 
     expect(log === log2).to.be.true;
-    // true
-
     expect(log === error).to.be.false;
-    // false
+    expect(warn === error).to.be.false;
+    expect(log === warn).to.be.false;
 
     log.mute();
     expect(console.log).not.to.equal(originalLoggingFunctions.log);
@@ -126,29 +127,42 @@ describe(`Testing README.md examples:`, function() {
     error.capture();
     expect(console.error).not.to.equal(originalLoggingFunctions.error);
 
+    warn.mute();
+    expect(console.warn).not.to.equal(originalLoggingFunctions.warb);
+
     console.log('muted log message');
     // Prints nothing
 
     console.error('captured/unmuted error message');
-    // Prints 'captured/unmuted error message'
+    // Prints on stderr 'captured/unmuted error message'
 
-    console.warn('uncaptured/unmuted warning');
-    // Prints 'uncaptured/unmuted warning'
+    console.warn('muted warning');
+    // Prints nothing
 
-    console.warn(log.getLogs('blue'), ': expected and printed in blue');
-    // Prints 'muted log message' in blue
-    expect(log.getLogs()).to.equal('muted log message');
+    console.warn(log.getLogs('blue'));
+    // Prints nothing
 
-    console.warn(error.getLogs('yellow'),
-      ': expected and printed in yellow');
-    // Prints 'captured/unmuted error message' in yellow
-    expect(error.getLogs()).to.equal('captured/unmuted error message');
+    console.warn(error.getLogs('yellow'));
+    // Prints nothing
 
     log.unmute();
     expect(console.log).to.equal(originalLoggingFunctions.log);
 
     error.uncapture();
     expect(console.error).to.equal(originalLoggingFunctions.error);
+
+    console.log(warn.getLogs(),
+      ': 3 messages expected, 1st-default color, 2nd-blue, 3rd-yellow');
+    // Prints on stdout:
+    // 'muted warning' in default color
+    // 'muted log message' in blue
+    // 'captured/unmuted error message' in yellow
+    expect(warn.getLogs()).to.equal(`muted warning
+${chalk.blue('muted log message')}
+${chalk.yellow('captured/unmuted error message')}`);
+
+    warn.unmute();
+    expect(console.warn).to.equal(originalLoggingFunctions.warn);
   }));
 
 });
