@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/jlenoble/muter#readme",
   "devDependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.9.0",
     "chai": "^3.5.0",
     "del": "^2.2.1",

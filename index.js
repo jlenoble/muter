@@ -102,3 +102,4 @@ function Muter(logger, method) {
 }
 
 exports.default = Muter;
+module.exports = exports['default'];
