@@ -122,7 +122,7 @@ World!`);
       expect(this.muter.getLogs()).to.equal(error.stack);
     }));
 
-    it(`muter captures messages without muting console.${method}` +
+    it(`A muter captures messages without muting console.${method}` +
       ` by calling 'capture'`, unmutedCallback(function() {
       this.muter.capture();
 
@@ -144,6 +144,26 @@ And this is a second unmuted test message`);
 
       this.muter.uncapture();
       expect(logger[method]).to.equal(originalLoggingFunction);
+    }));
+
+    it(`A muter flushes messages by calling 'flush'`,
+    unmutedCallback(function() {
+      this.muter.mute();
+
+      expect(logger[method]).not.to.equal(originalLoggingFunction);
+
+      logger[method](
+        'This is a muted test message that should be flushed by muter');
+      logger[method]('And this is a second muted and flushed test message');
+
+      expect(this.muter.flush()).to.equal(
+        `This is a muted test message that should be flushed by muter
+And this is a second muted and flushed test message`);
+
+      logger[method]('And this is a third muted and flushed test message');
+
+      expect(this.muter.flush()).to.equal(
+        `And this is a third muted and flushed test message`);
     }));
 
   });

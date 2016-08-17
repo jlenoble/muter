@@ -11,13 +11,14 @@ import Muter from 'muter';
 
 const muter = Muter(console, 'error');
 ```
-###The returned object has 5 main methods:
+###The returned object has 6 main methods:
 
 * mute(): To silence the logger and capture the logs.
 * unmute(): To restore the logger to its normal use.
 * capture(): To capture the logs without silencing the logger.
 * uncapture(): Same as unmute().
 * getLogs(color): Returns a colored string concatenation of all the logs. color is an optional argument. If not provided, text will be printed in default stdout/stderr color (most likely white on black or black on white). Colors are as defined by the [chalk](https://github.com/chalk/chalk) module.
+* flush(color): Returns the same as getLogs(color), but also have the logger print it with the spied on method, then resets the logs.
 
 ```js
 muter.mute();
@@ -43,6 +44,40 @@ console.error('Another test message');
 
 console.log(muter.getLogs('red'));
 // Prints on stdout 'Another test message' in red
+
+muter.uncapture();
+// Restores console.error to default behavior
+
+console.log(muter.getLogs('red'));
+// Prints on stdout 'undefined'
+
+muter.capture();
+// stderr will still output logs
+
+console.error('Another test message');
+// Prints on stderr 'Another test message' in default color
+
+console.log(muter.getLogs('red'));
+// Prints on stdout 'Another test message' in red
+
+muter.uncapture();
+// Restores console.error to default behavior
+
+console.log(muter.getLogs('red'));
+// Prints on stdout 'undefined'
+
+muter.capture();
+// stderr will still output logs
+
+console.error('And another test message');
+// Prints on stderr 'And another test message' in default color
+
+console.log(muter.flush('red'));
+// Prints on stderr 'And another test message' in red
+// Prints on stdout 'And another test message' in red
+
+console.log(muter.getLogs('red'));
+// Prints on stdout ''
 
 muter.uncapture();
 // Restores console.error to default behavior

@@ -84,6 +84,25 @@ describe(`Testing README.md examples:`, function() {
       'undefined expected and printed in default color');
     // Should print on stdout 'undefined' and 'undefined expected and
     // printed in default color', all in default color
+
+    muter.capture(); // stderr will still output logs
+    expect(console.error).not.to.equal(originalLoggingFunctions.error);
+
+    console.error('And another test message'); // This message should be
+    // printed in default color
+    expect(muter.getLogs()).to.equal('And another test message');
+
+    console.log(muter.flush('red'), ': message expected thrice, first in' +
+      ' default color, then 2 in red');
+    // Should print on stderr 'And another test message' in red and
+    // should print on stdout 'And another test message' in red and
+    // ': message expected thrice, first in default color, then 2 in red');
+    // Muter should still be capturing
+    expect(console.error).not.to.equal(originalLoggingFunctions.error);
+
+    muter.uncapture(); // Restores console.error to default behavior
+    expect(console.error).to.equal(originalLoggingFunctions.error);
+    expect(muter.getLogs('red')).to.be.undefined;
   }));
 
   it('README.md format example works fine', unmutedCallback(function() {
