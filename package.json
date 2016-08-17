@@ -1,6 +1,6 @@
 {
   "name": "muter",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A node module to mute and/or capture console logs",
   "main": "index.js",
   "scripts": {
