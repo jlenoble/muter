@@ -52,18 +52,18 @@ describe(`Testing Muter concurrency:`, function() {
   it(`Can't mute console.log twice`, unmutedCallback(function() {
     this.log.mute();
 
-    expect(this.log.mute).to.throw(TypeError,
+    expect(this.log.mute.bind(this.log)).to.throw(TypeError,
       'Attempted to wrap log which is already wrapped');
-    expect(this.log.capture).to.throw(TypeError,
+    expect(this.log.capture.bind(this.log)).to.throw(TypeError,
       'Attempted to wrap log which is already wrapped');
   }));
 
   it(`Can unmute console.log multiple times`, unmutedCallback(function() {
     this.log.mute();
 
-    expect(this.log.unmute).not.to.throw();
-    expect(this.log.unmute).not.to.throw();
-    expect(this.log.uncapture).not.to.throw();
+    expect(this.log.unmute.bind(this.log)).not.to.throw();
+    expect(this.log.unmute.bind(this.log)).not.to.throw();
+    expect(this.log.uncapture.bind(this.log)).not.to.throw();
   }));
 
   it(`A Muter is a singleton`, unmutedCallback(function() {
