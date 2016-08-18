@@ -37,22 +37,11 @@ function Muter(logger, method) {
     [_isMuting]: false,
     [_isCapturing]: false,
 
-    isActivated() {
-      if (logger[method].restore) {
-        return true;
-      } else {
-        // Fix states in case logger was restored somewhere else
-        this.isMuting = false;
-        this.isCapturing = false;
-        return false;
-      }
-    },
-
     mute(options = {
       muteProcessStdout: false,
       muteProcessStderr: false
     }) {
-      if (this.isActivated()) {
+      if (this.isActivated) {
         throw new Error(`Muter is already activated, don't call 'mute'`);
       }
 
@@ -75,7 +64,7 @@ function Muter(logger, method) {
     },
 
     getLogs(color) {
-      if (this.isActivated()) {
+      if (this.isActivated) {
         var calls = logger[method].getCalls();
 
         calls = calls.map(call => {
@@ -89,7 +78,7 @@ function Muter(logger, method) {
     },
 
     capture() {
-      if (this.isActivated()) {
+      if (this.isActivated) {
         throw new Error(`Muter is already activated, don't call 'capture'`);
       }
 
@@ -112,7 +101,7 @@ function Muter(logger, method) {
     },
 
     flush(color) {
-      if (!this.isActivated()) {
+      if (!this.isActivated) {
         return;
       }
 
@@ -154,6 +143,18 @@ function Muter(logger, method) {
           this[_isCapturing] = true;
         } else {
           this[_isCapturing] = false;
+        }
+      }
+    },
+    isActivated: {
+      get() {
+        if (logger[method].restore) {
+          return true;
+        } else {
+          // Fix states in case logger was restored somewhere else
+          this.isMuting = false;
+          this.isCapturing = false;
+          return false;
         }
       }
     }
