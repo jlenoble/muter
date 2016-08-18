@@ -4,7 +4,7 @@ import util from 'util';
 
 var muters = new Map();
 
-function Muter(logger, method) {
+function Muter(logger, method, format) {
 
   var muter = muters.get(logger[method]);
 
@@ -16,6 +16,10 @@ function Muter(logger, method) {
     (method === 'log' || method === 'info');
   const usesStderr = process.stderr && logger === console &&
     (method === 'warn' || method === 'error');
+
+  if (!format && (usesStdout || usesStderr)) {
+    format = util.format;
+  }
 
   function unmute() {
     if (logger[method].restore) {logger[method].restore();}
@@ -68,7 +72,7 @@ function Muter(logger, method) {
         var calls = logger[method].getCalls();
 
         calls = calls.map(call => {
-          return util.format(...call.args);
+          return format(...call.args);
         });
 
         calls = calls.join('\n');
@@ -86,11 +90,11 @@ function Muter(logger, method) {
 
       if (usesStdout) {
         sinon.stub(logger, method, function(...args) {
-          return process.stdout.write(util.format(...args) + '\n');
+          return process.stdout.write(format(...args) + '\n');
         });
       } else if (usesStderr) {
         sinon.stub(logger, method, function(...args) {
-          return process.stderr.write(util.format(...args) + '\n');
+          return process.stderr.write(format(...args) + '\n');
         });
       }
     },
