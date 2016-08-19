@@ -25,9 +25,16 @@ const testSrcGlob = 'test/*.test.js';
 
 const allSrcGlob = [srcGlob, testSrcGlob];
 const testBuildGlob = path.join(buildDir, testSrcGlob);
+const allBuildGlob = [
+  path.join(buildDir, srcGlob),
+  path.join(buildDir, testSrcGlob)
+];
 
 const build = () => {
-  return gulp.src(allSrcGlob, {base: process.cwd()})
+  return gulp.src(allSrcGlob, {
+    base: process.cwd(),
+    since: gulp.lastRun(build)
+  })
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write())
@@ -41,7 +48,7 @@ const test = () => {
 
 const watch = (done) => {
   gulp.watch(allSrcGlob, build);
-  gulp.watch(testBuildGlob, test);
+  gulp.watch(allBuildGlob, test);
   done();
 };
 
