@@ -9,10 +9,6 @@ methods.forEach(method => {
 
   function unmute() {
     logger[method].restore && logger[method].restore();
-    process.stdout && process.stdout.write.restore &&
-      process.stdout.write.restore();
-    process.stderr && process.stderr.write.restore &&
-      process.stderr.write.restore();
   }
 
   const originalLoggingFunction = logger[method];

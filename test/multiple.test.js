@@ -6,11 +6,6 @@ function unmute() {
   console.log.restore && console.log.restore();
   console.warn.restore && console.warn.restore();
   console.error.restore && console.error.restore();
-
-  process.stdout && process.stdout.write.restore &&
-    process.stdout.write.restore();
-  process.stderr && process.stderr.write.restore &&
-    process.stderr.write.restore();
 }
 
 const originalLoggingFunctions = {

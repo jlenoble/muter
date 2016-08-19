@@ -4,7 +4,7 @@ import util from 'util';
 
 var muters = new Map();
 
-function Muter(logger, method, format) {
+function Muter(logger, method, format = util.format) {
 
   var muter = muters.get(logger[method]);
 
@@ -12,25 +12,8 @@ function Muter(logger, method, format) {
     return muter;
   }
 
-  const usesStdout = process.stdout && logger === console &&
-    (method === 'log' || method === 'info');
-  const usesStderr = process.stderr && logger === console &&
-    (method === 'warn' || method === 'error');
-
-  if (!format && (usesStdout || usesStderr)) {
-    format = util.format;
-  }
-
   function unmute() {
     if (logger[method].restore) {logger[method].restore();}
-
-    if (usesStdout && process.stdout.write.restore) {
-      process.stdout.write.restore();
-    }
-
-    if (usesStderr && process.stderr.write.restore) {
-      process.stderr.write.restore();
-    }
   }
 
   const _isMuting = Symbol();
@@ -41,10 +24,7 @@ function Muter(logger, method, format) {
     [_isMuting]: false,
     [_isCapturing]: false,
 
-    mute(options = {
-      muteProcessStdout: false,
-      muteProcessStderr: false
-    }) {
+    mute() {
       if (this.isActivated) {
         throw new Error(`Muter is already activated, don't call 'mute'`);
       }
@@ -52,14 +32,6 @@ function Muter(logger, method, format) {
       this.isMuting = true;
 
       sinon.stub(logger, method);
-
-      if (options.muteProcessStdout) {
-        // Silence also process.stdout for full muting.
-        sinon.stub(process.stdout, 'write');
-      } else if (options.muteProcessStderr) {
-        // Silence also process.stderr for full muting.
-        sinon.stub(process.stderr, 'write');
-      }
     },
 
     unmute() {
@@ -88,15 +60,7 @@ function Muter(logger, method, format) {
 
       this.isCapturing = true;
 
-      if (usesStdout) {
-        sinon.stub(logger, method, function(...args) {
-          return process.stdout.write(format(...args) + '\n');
-        });
-      } else if (usesStderr) {
-        sinon.stub(logger, method, function(...args) {
-          return process.stderr.write(format(...args) + '\n');
-        });
-      }
+      sinon.stub(logger, method, logger[method]);
     },
 
     uncapture() {
