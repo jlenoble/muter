@@ -24,8 +24,42 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var muters = new Map();
 
-function Muter(logger, method, format) {
+function formatter(logger, method) {
+  if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
+    return _util2.default.format;
+  } else if ([process.stdout, process.stderr].includes(logger) && method === 'write') {
+    return function (chunk, encoding) {
+      return chunk.toString(encoding);
+    };
+  } else {
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      return args.join(' ');
+    };
+  }
+}
+
+function endString(logger, method) {
+  if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
+    return '\n';
+  } else if ([process.stdout, process.stderr].includes(logger) && method === 'write') {
+    return '';
+  } else {
+    return '\n';
+  }
+}
+
+function Muter(logger, method) {
   var _muter;
+
+  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+
+  var format = options.format ? options.format : formatter(logger, method);
+  var end = options.endString ? options.endString : endString(logger, method);
 
   var muter = muters.get(logger[method]);
 
@@ -33,24 +67,9 @@ function Muter(logger, method, format) {
     return muter;
   }
 
-  var usesStdout = process.stdout && logger === console && (method === 'log' || method === 'info');
-  var usesStderr = process.stderr && logger === console && (method === 'warn' || method === 'error');
-
-  if (!format && (usesStdout || usesStderr)) {
-    format = _util2.default.format;
-  }
-
   function _unmute() {
     if (logger[method].restore) {
       logger[method].restore();
-    }
-
-    if (usesStdout && process.stdout.write.restore) {
-      process.stdout.write.restore();
-    }
-
-    if (usesStderr && process.stderr.write.restore) {
-      process.stderr.write.restore();
     }
   }
 
@@ -58,11 +77,6 @@ function Muter(logger, method, format) {
   var _isCapturing = Symbol();
 
   muter = (_muter = {}, _defineProperty(_muter, _isMuting, false), _defineProperty(_muter, _isCapturing, false), _defineProperty(_muter, 'mute', function mute() {
-    var options = arguments.length <= 0 || arguments[0] === undefined ? {
-      muteProcessStdout: false,
-      muteProcessStderr: false
-    } : arguments[0];
-
     if (this.isActivated) {
       throw new Error('Muter is already activated, don\'t call \'mute\'');
     }
@@ -70,14 +84,6 @@ function Muter(logger, method, format) {
     this.isMuting = true;
 
     _sinon2.default.stub(logger, method);
-
-    if (options.muteProcessStdout) {
-      // Silence also process.stdout for full muting.
-      _sinon2.default.stub(process.stdout, 'write');
-    } else if (options.muteProcessStderr) {
-      // Silence also process.stderr for full muting.
-      _sinon2.default.stub(process.stderr, 'write');
-    }
   }), _defineProperty(_muter, 'unmute', function unmute() {
     _unmute();
     this.isMuting = false;
@@ -89,7 +95,7 @@ function Muter(logger, method, format) {
         return format.apply(undefined, _toConsumableArray(call.args));
       });
 
-      calls = calls.join('\n');
+      calls = calls.join(end);
 
       return color ? _chalk2.default[color](calls) : calls;
     }
@@ -100,15 +106,7 @@ function Muter(logger, method, format) {
 
     this.isCapturing = true;
 
-    if (usesStdout) {
-      _sinon2.default.stub(logger, method, function () {
-        return process.stdout.write(format.apply(undefined, arguments) + '\n');
-      });
-    } else if (usesStderr) {
-      _sinon2.default.stub(logger, method, function () {
-        return process.stderr.write(format.apply(undefined, arguments) + '\n');
-      });
-    }
+    _sinon2.default.stub(logger, method, logger[method]);
   }), _defineProperty(_muter, 'uncapture', function uncapture() {
     _unmute();
     this.isCapturing = false;

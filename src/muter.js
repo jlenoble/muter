@@ -4,7 +4,32 @@ import util from 'util';
 
 var muters = new Map();
 
-function Muter(logger, method, format = util.format) {
+function formatter(logger, method) {
+  if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
+    return util.format;
+  } else if ([process.stdout, process.stderr].includes(logger) &&
+    method === 'write') {
+    return (chunk, encoding) => chunk.toString(encoding);
+  } else {
+    return (...args) => args.join(' ');
+  }
+}
+
+function endString(logger, method) {
+  if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
+    return '\n';
+  } else if ([process.stdout, process.stderr].includes(logger) &&
+    method === 'write') {
+    return '';
+  } else {
+    return '\n';
+  }
+}
+
+function Muter(logger, method, options = {}) {
+
+  const format = options.format ? options.format : formatter(logger, method);
+  const end = options.endString ? options.endString : endString(logger, method);
 
   var muter = muters.get(logger[method]);
 
@@ -47,7 +72,7 @@ function Muter(logger, method, format = util.format) {
           return format(...call.args);
         });
 
-        calls = calls.join('\n');
+        calls = calls.join(end);
 
         return color ? chalk[color](calls) : calls;
       }
