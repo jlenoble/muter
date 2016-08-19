@@ -24,7 +24,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var muters = new Map();
 
-function Muter(logger, method) {
+function Muter(logger, method, format) {
   var _muter;
 
   var muter = muters.get(logger[method]);
@@ -35,6 +35,10 @@ function Muter(logger, method) {
 
   var usesStdout = process.stdout && logger === console && (method === 'log' || method === 'info');
   var usesStderr = process.stderr && logger === console && (method === 'warn' || method === 'error');
+
+  if (!format && (usesStdout || usesStderr)) {
+    format = _util2.default.format;
+  }
 
   function _unmute() {
     if (logger[method].restore) {
@@ -53,22 +57,13 @@ function Muter(logger, method) {
   var _isMuting = Symbol();
   var _isCapturing = Symbol();
 
-  muter = (_muter = {}, _defineProperty(_muter, _isMuting, false), _defineProperty(_muter, _isCapturing, false), _defineProperty(_muter, 'isActivated', function isActivated() {
-    if (logger[method].restore) {
-      return true;
-    } else {
-      // Fix states in case logger was restored somewhere else
-      this.isMuting = false;
-      this.isCapturing = false;
-      return false;
-    }
-  }), _defineProperty(_muter, 'mute', function mute() {
+  muter = (_muter = {}, _defineProperty(_muter, _isMuting, false), _defineProperty(_muter, _isCapturing, false), _defineProperty(_muter, 'mute', function mute() {
     var options = arguments.length <= 0 || arguments[0] === undefined ? {
       muteProcessStdout: false,
       muteProcessStderr: false
     } : arguments[0];
 
-    if (this.isActivated()) {
+    if (this.isActivated) {
       throw new Error('Muter is already activated, don\'t call \'mute\'');
     }
 
@@ -87,11 +82,11 @@ function Muter(logger, method) {
     _unmute();
     this.isMuting = false;
   }), _defineProperty(_muter, 'getLogs', function getLogs(color) {
-    if (this.isActivated()) {
+    if (this.isActivated) {
       var calls = logger[method].getCalls();
 
       calls = calls.map(function (call) {
-        return _util2.default.format.apply(_util2.default, _toConsumableArray(call.args));
+        return format.apply(undefined, _toConsumableArray(call.args));
       });
 
       calls = calls.join('\n');
@@ -99,7 +94,7 @@ function Muter(logger, method) {
       return color ? _chalk2.default[color](calls) : calls;
     }
   }), _defineProperty(_muter, 'capture', function capture() {
-    if (this.isActivated()) {
+    if (this.isActivated) {
       throw new Error('Muter is already activated, don\'t call \'capture\'');
     }
 
@@ -107,18 +102,18 @@ function Muter(logger, method) {
 
     if (usesStdout) {
       _sinon2.default.stub(logger, method, function () {
-        return process.stdout.write(_util2.default.format.apply(_util2.default, arguments) + '\n');
+        return process.stdout.write(format.apply(undefined, arguments) + '\n');
       });
     } else if (usesStderr) {
       _sinon2.default.stub(logger, method, function () {
-        return process.stderr.write(_util2.default.format.apply(_util2.default, arguments) + '\n');
+        return process.stderr.write(format.apply(undefined, arguments) + '\n');
       });
     }
   }), _defineProperty(_muter, 'uncapture', function uncapture() {
     _unmute();
     this.isCapturing = false;
   }), _defineProperty(_muter, 'flush', function flush(color) {
-    if (!this.isActivated()) {
+    if (!this.isActivated) {
       return;
     }
 
@@ -161,6 +156,18 @@ function Muter(logger, method) {
           this[_isCapturing] = true;
         } else {
           this[_isCapturing] = false;
+        }
+      }
+    },
+    isActivated: {
+      get: function get() {
+        if (logger[method].restore) {
+          return true;
+        } else {
+          // Fix states in case logger was restored somewhere else
+          this.isMuting = false;
+          this.isCapturing = false;
+          return false;
         }
       }
     }
