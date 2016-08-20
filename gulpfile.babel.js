@@ -20,7 +20,7 @@ gulp.src = function() {
 };
 
 const buildDir = 'build';
-const srcGlob = 'src/muter.js';
+const srcGlob = 'src/*.js';
 const testSrcGlob = 'test/*.test.js';
 
 const allSrcGlob = [srcGlob, testSrcGlob];
