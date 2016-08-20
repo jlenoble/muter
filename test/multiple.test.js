@@ -4,12 +4,14 @@ import {expect} from 'chai';
 
 function unmute() {
   console.log.restore && console.log.restore();
+  console.info.restore && console.info.restore();
   console.warn.restore && console.warn.restore();
   console.error.restore && console.error.restore();
 }
 
 const originalLoggingFunctions = {
   log: console.log,
+  info: console.info,
   warn: console.warn,
   error: console.error
 };
@@ -40,6 +42,7 @@ describe(`Testing Muter concurrency:`, function() {
 
   before(function() {
     this.log = Muter(console, 'log');
+    this.info = Muter(console, 'info');
     this.warn = Muter(console, 'warn');
     this.error = Muter(console, 'error');
   });
@@ -62,7 +65,7 @@ describe(`Testing Muter concurrency:`, function() {
   }));
 
   it(`A Muter is a singleton`, unmutedCallback(function() {
-    ['log', 'warn', 'error'].forEach(name => {
+    ['log', 'info', 'warn', 'error'].forEach(name => {
       const muter = Muter(console, name);
 
       expect(muter).to.equal(this[name]);
@@ -153,6 +156,49 @@ Test console.error 3, should be muted`);
       `Test console.error 2, should be muted
 Test console.error 3, should be muted
 Test console.error 4, should be muted`);
+  }));
+
+  it(`console.log and console.info don't interfere`, unmutedCallback(
+  function() {
+    this.log.mute();
+
+    console.log('Test console.log, should be muted');
+    console.info('Test console.info, should be unmuted');
+
+    expect(this.log.getLogs()).to.equal('Test console.log, should be muted');
+    expect(this.info.getLogs()).to.be.undefined;
+
+    this.info.mute();
+
+    console.log('Test console.log 2, should be muted');
+    console.info('Test console.info 2, should be muted');
+
+    expect(this.log.getLogs()).to.equal(`Test console.log, should be muted
+Test console.log 2, should be muted`);
+    expect(this.info.getLogs()).to.equal(
+      'Test console.info 2, should be muted');
+
+    this.log.unmute();
+
+    console.log('Test console.log 3, should be unmuted');
+    console.info('Test console.info 3, should be muted');
+
+    expect(this.log.getLogs()).to.be.undefined;
+    expect(this.info.getLogs()).to.equal(
+      `Test console.info 2, should be muted
+Test console.info 3, should be muted`);
+
+    this.log.capture();
+
+    console.log('Test console.log 4, should be captured');
+    console.info('Test console.info 4, should be muted');
+
+    expect(this.log.getLogs()).to.equal(
+      'Test console.log 4, should be captured');
+    expect(this.info.getLogs()).to.equal(
+      `Test console.info 2, should be muted
+Test console.info 3, should be muted
+Test console.info 4, should be muted`);
   }));
 
 });
