@@ -58,6 +58,7 @@ class SimpleMuter extends EventEmitter {
       logger: {value: logger},
       method: {value: method},
       original: {value: logger[method]},
+      boundOriginal: {value: logger[method].bind(logger)},
 
       format: {value: options.format ? options.format :
         formatter(logger, method)},
@@ -123,7 +124,9 @@ class SimpleMuter extends EventEmitter {
 
     this.isMuting = true;
 
-    sinon.stub(this.logger, this.method);
+    sinon.stub(this.logger, this.method, (...args) => {
+      this.emit('log', args);
+    });
   }
 
   capture() {
@@ -133,7 +136,10 @@ class SimpleMuter extends EventEmitter {
 
     this.isCapturing = true;
 
-    sinon.stub(this.logger, this.method, this.original);
+    sinon.stub(this.logger, this.method, (...args) => {
+      this.emit('log', args);
+      this.boundOriginal(...args);
+    });
   }
 
   unmute() {
