@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 import chalk from 'chalk';
 import util from 'util';
+import EventEmitter from 'events';
 
 var muters = new Map();
 
@@ -26,13 +27,23 @@ function endString(logger, method) {
   }
 }
 
-class SimpleMuter {
+function unmuter(logger, method) {
+  return () => {
+    const func = logger[method];
+    if (func.restore && func.restore.sinon) {
+      func.restore();
+    }
+  };
+}
+
+const _isMuting = Symbol();
+const _isCapturing = Symbol();
+
+class SimpleMuter extends EventEmitter {
 
   constructor(logger, method, options = {}) {
 
-    const format = options.format ? options.format : formatter(logger, method);
-    const end = options.endString ? options.endString :
-      endString(logger, method);
+    super();
 
     var muter = muters.get(logger[method]);
 
@@ -40,86 +51,24 @@ class SimpleMuter {
       return muter;
     }
 
-    function unmute() {
-      if (logger[method].restore) {logger[method].restore();}
-    }
+    muter = this;
 
-    const _isMuting = Symbol();
-    const _isCapturing = Symbol();
+    const properties = {
 
-    muter = {
+      logger: {value: logger},
+      method: {value: method},
+      original: {value: logger[method]},
 
-      [_isMuting]: false,
-      [_isCapturing]: false,
+      format: {value: options.format ? options.format :
+        formatter(logger, method)},
+      endString: {value: options.endString ? options.endString :
+        endString(logger, method)},
 
-      mute() {
-        if (this.isActivated) {
-          throw new Error(`Muter is already activated, don't call 'mute'`);
-        }
+      _unmute: {value: unmuter(logger, method)},
 
-        this.isMuting = true;
+      [_isMuting]: {value: false, writable: true},
+      [_isCapturing]: {value: false, writable: true},
 
-        sinon.stub(logger, method);
-      },
-
-      unmute() {
-        unmute();
-        this.isMuting = false;
-      },
-
-      getLogs(color) {
-        if (this.isActivated) {
-          var calls = logger[method].getCalls();
-
-          calls = calls.map(call => {
-            return format(...call.args);
-          });
-
-          calls = calls.join(end);
-
-          return color ? chalk[color](calls) : calls;
-        }
-      },
-
-      capture() {
-        if (this.isActivated) {
-          throw new Error(`Muter is already activated, don't call 'capture'`);
-        }
-
-        this.isCapturing = true;
-
-        sinon.stub(logger, method, logger[method]);
-      },
-
-      uncapture() {
-        unmute();
-        this.isCapturing = false;
-      },
-
-      flush(color) {
-        if (!this.isActivated) {
-          return;
-        }
-
-        const logs = this.getLogs(color);
-        unmute();
-        logger[method](logs);
-
-        if (this.isMuting) {
-          this.mute();
-        } else if (this.isCapturing) {
-          this.capture();
-        } else {
-          throw new Error('Muter was neither muting nor capturing, ' +
-            'yet trying to remute/recapture after flushing');
-        }
-
-        return logs;
-      }
-
-    };
-
-    Object.defineProperties(muter, {
       isMuting: {
         get() {return this[_isMuting];},
         set(bool) {
@@ -131,6 +80,7 @@ class SimpleMuter {
           }
         }
       },
+
       isCapturing: {
         get() {return this[_isCapturing];},
         set(bool) {
@@ -142,6 +92,7 @@ class SimpleMuter {
           }
         }
       },
+
       isActivated: {
         get() {
           if (logger[method].restore) {
@@ -154,12 +105,80 @@ class SimpleMuter {
           }
         }
       }
-    });
+
+    };
+
+    Object.defineProperties(muter, properties);
 
     muters.set(logger[method], muter);
 
     return muter;
 
+  }
+
+  mute() {
+    if (this.isActivated) {
+      throw new Error(`Muter is already activated, don't call 'mute'`);
+    }
+
+    this.isMuting = true;
+
+    sinon.stub(this.logger, this.method);
+  }
+
+  capture() {
+    if (this.isActivated) {
+      throw new Error(`Muter is already activated, don't call 'capture'`);
+    }
+
+    this.isCapturing = true;
+
+    sinon.stub(this.logger, this.method, this.original);
+  }
+
+  unmute() {
+    this._unmute();
+    this.isMuting = false;
+  }
+
+  uncapture() {
+    this._unmute();
+    this.isCapturing = false;
+  }
+
+  getLogs(color) {
+    if (this.isActivated) {
+      var calls = this.logger[this.method].getCalls();
+
+      calls = calls.map(call => {
+        return this.format(...call.args);
+      });
+
+      calls = calls.join(this.endString);
+
+      return color ? chalk[color](calls) : calls;
+    }
+  }
+
+  flush(color) {
+    if (!this.isActivated) {
+      return;
+    }
+
+    const logs = this.getLogs(color);
+    this._unmute();
+    this.logger[this.method](logs);
+
+    if (this.isMuting) {
+      this.mute();
+    } else if (this.isCapturing) {
+      this.capture();
+    } else {
+      throw new Error('Muter was neither muting nor capturing, ' +
+        'yet trying to remute/recapture after flushing');
+    }
+
+    return logs;
   }
 
 }
