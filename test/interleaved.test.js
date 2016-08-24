@@ -152,7 +152,7 @@ describe('Testing interleaved Muters:', function() {
     const t2 = moment(match[3], 'hh:mm:ss');
     const t3 = moment();
 
-    expect(t1).to.be.at.most(t3);
+    expect(t1).to.be.at.most(t2);
     expect(t2).to.be.at.most(t3);
 
     const grayStrings = chalk.gray(' ').match(ansiRegex());
