@@ -80,7 +80,7 @@ describe('Testing interleaved Muters:', function() {
 
   for (let j = 0; j < 2; j++) {
 
-    it('console loggers can be interleaved, run ${j + 1}',
+    it(`console loggers can be interleaved, run ${j + 1}`,
     unmutedCallback(function() {
       this.methods.forEach(method => {
         this[method].mute();
