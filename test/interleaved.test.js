@@ -115,7 +115,7 @@ describe('Testing interleaved Muters:', function() {
 
   }
 
-  it('Advanced muters can capture their underlying muters',
+  it('Advanced Muters can capture their underlying Muters',
   unmutedCallback(function() {
     const muter = Muter(
       [console, 'log'],
@@ -134,7 +134,7 @@ describe('Testing interleaved Muters:', function() {
     expect(muter.getLogs()).to.equal('log1\ninfo1\ninfo2\nlog2\n');
   }));
 
-  it('An advanced Muter can capture gutil.log', unmutedCallback(function() {
+  it('Advanced Muters can capture gutil.log', unmutedCallback(function() {
     const muter = Muter(
       [console, 'log'],
       [process.stdout, 'write']
@@ -162,6 +162,20 @@ describe('Testing interleaved Muters:', function() {
       '] A second test message logged by gutil.log\n';
 
     expect(muter.getLogs()).to.equal(message);
+  }));
+
+  it('Advanced Muters share API with simple Muters',
+  unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
+    expect(muter.mute).to.be.instanceof(Function);
+    expect(muter.unmute).to.be.instanceof(Function);
+    expect(muter.capture).to.be.instanceof(Function);
+    expect(muter.uncapture).to.be.instanceof(Function);
+    expect(muter.getLogs).to.be.instanceof(Function);
+    expect(muter.flush).to.be.instanceof(Function);
   }));
 
 });

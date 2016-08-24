@@ -35,11 +35,33 @@ class AdvancedMuter {
     });
   }
 
+  capture() {
+    this[_muters].forEach(muter => {
+      muter.capture();
+    });
+  }
+
+  unmute() {
+    this[_muters].forEach(muter => {
+      muter.unmute();
+    });
+  }
+
+  uncapture() {
+    this[_muters].forEach(muter => {
+      muter.uncapture();
+    });
+  }
+
   getLogs(color) {
     const message = this[_messages].join('');
     if (message) {
       return message;
     }
+  }
+
+  flush(color) {
+    
   }
 
 }
