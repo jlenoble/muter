@@ -1,12 +1,20 @@
 import Muter from '../src/muter';
 
 import {expect} from 'chai';
+import moment from 'moment';
+import gutil from 'gulp-util';
+import chalk from 'chalk';
+import ansiRegex from 'ansi-regex';
 
 function unmute() {
   console.log.restore && console.log.restore();
   console.info.restore && console.info.restore();
   console.warn.restore && console.warn.restore();
   console.error.restore && console.error.restore();
+  process.stdout && process.stdout.write.restore &&
+    process.stdout.write.restore();
+  process.stderr && process.stderr.write.restore &&
+    process.stderr.write.restore();
 }
 
 function removeListeners() {
@@ -15,9 +23,13 @@ function removeListeners() {
       this[method].removeListener('log', this.listener);
     }
   });
+
+  ['stdout', 'stderr'].forEach(std => {
+    this[std].removeListener('log', this.listener);
+  });
 }
 
-describe('Testing events in Muter:', function() {
+describe('Testing interleaved Muters:', function() {
 
   const unmutedCallback = function(func) {
     // Wrapping Mocha callbacks is necessary due to the fact that these tests
@@ -48,9 +60,14 @@ describe('Testing events in Muter:', function() {
   };
 
   before(function() {
-    this.methods = ['info', 'warn','error'];
+    this.methods = ['log', 'info', 'warn','error'];
     this.methods.forEach(method => {
       this[method] = Muter(console, method);
+    });
+
+    this.stds = ['stdout', 'stderr'];
+    this.stds.forEach(std => {
+      this[std] = Muter(process[std], 'write');
     });
 
     this.randomMethod = () => {
@@ -97,5 +114,54 @@ describe('Testing events in Muter:', function() {
     }));
 
   }
+
+  it('Advanced muters can capture their underlying muters',
+  unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'info']
+    );
+
+    muter.mute();
+
+    console.log('log1');
+    console.info('info1');
+    console.info('info2');
+    console.log('log2');
+
+    expect(this.log.getLogs()).to.equal('log1\nlog2');
+    expect(this.info.getLogs()).to.equal('info1\ninfo2');
+    expect(muter.getLogs()).to.equal('log1\ninfo1\ninfo2\nlog2\n');
+  }));
+
+  it('An advanced Muter can capture gutil.log', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [process.stdout, 'write']
+    );
+
+    muter.mute();
+
+    gutil.log('A test message logged by gutil.log');
+    gutil.log('A second test message logged by gutil.log');
+
+    const logs = muter.getLogs();
+    const match = logs.match(
+      /^\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+$/);
+    const t1 = moment(match[1], 'hh:mm:ss');
+    const t2 = moment(match[3], 'hh:mm:ss');
+    const t3 = moment();
+
+    expect(t1).to.be.at.most(t3);
+    expect(t2).to.be.at.most(t3);
+
+    const grayStrings = chalk.gray(' ').match(ansiRegex());
+    const message = '[' + grayStrings[0] + t1.format('hh:mm:ss') +
+      grayStrings[1] + '] A test message logged by gutil.log\n' +
+      '[' + grayStrings[0] + t2.format('hh:mm:ss') + grayStrings[1] +
+      '] A second test message logged by gutil.log\n';
+
+    expect(muter.getLogs()).to.equal(message);
+  }));
 
 });
