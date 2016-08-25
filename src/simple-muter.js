@@ -38,6 +38,7 @@ function unmuter(logger, method) {
 
 const _isMuting = Symbol();
 const _isCapturing = Symbol();
+const _unmute = Symbol();
 
 class SimpleMuter extends EventEmitter {
 
@@ -65,7 +66,7 @@ class SimpleMuter extends EventEmitter {
       endString: {value: options.endString ? options.endString :
         endString(logger, method)},
 
-      _unmute: {value: unmuter(logger, method)},
+      [_unmute]: {value: unmuter(logger, method)},
 
       [_isMuting]: {value: false, writable: true},
       [_isCapturing]: {value: false, writable: true},
@@ -143,12 +144,12 @@ class SimpleMuter extends EventEmitter {
   }
 
   unmute() {
-    this._unmute();
+    this[_unmute]();
     this.isMuting = false;
   }
 
   uncapture() {
-    this._unmute();
+    this[_unmute]();
     this.isCapturing = false;
   }
 
@@ -172,7 +173,7 @@ class SimpleMuter extends EventEmitter {
     }
 
     const logs = this.getLogs(color);
-    this._unmute();
+    this[_unmute]();
     this.logger[this.method](logs);
 
     if (this.isMuting) {
