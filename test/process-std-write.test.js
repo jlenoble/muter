@@ -158,4 +158,6 @@ describe(`Testing Muter factory with process.stdout.write:`, function() {
       `And this is a third muted and flushed test message`);
   }));
 
+  it(`Concurrency between stdout and stderr`);
+
 });

@@ -20,12 +20,12 @@ function unmute() {
 function removeListeners() {
   ['log', 'info', 'warn', 'error'].forEach(method => {
     if (this[method]) {
-      this[method].removeListener('log', this.listener);
+      this[method].removeAllListeners();
     }
   });
 
   ['stdout', 'stderr'].forEach(std => {
-    this[std].removeListener('log', this.listener);
+    this[std].removeAllListeners();
   });
 }
 
@@ -148,17 +148,17 @@ describe('Testing interleaved Muters:', function() {
     const logs = muter.getLogs();
     const match = logs.match(
       /^\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+$/);
-    const t1 = moment(match[1], 'hh:mm:ss');
-    const t2 = moment(match[3], 'hh:mm:ss');
+    const t1 = moment(match[1], 'HH:mm:ss');
+    const t2 = moment(match[3], 'HH:mm:ss');
     const t3 = moment();
 
     expect(t1).to.be.at.most(t2);
     expect(t2).to.be.at.most(t3);
 
     const grayStrings = chalk.gray(' ').match(ansiRegex());
-    const message = '[' + grayStrings[0] + t1.format('hh:mm:ss') +
+    const message = '[' + grayStrings[0] + t1.format('HH:mm:ss') +
       grayStrings[1] + '] A test message logged by gutil.log\n' +
-      '[' + grayStrings[0] + t2.format('hh:mm:ss') + grayStrings[1] +
+      '[' + grayStrings[0] + t2.format('HH:mm:ss') + grayStrings[1] +
       '] A second test message logged by gutil.log\n';
 
     expect(muter.getLogs()).to.equal(message);
@@ -170,12 +170,145 @@ describe('Testing interleaved Muters:', function() {
       [console, 'log'],
       [console, 'error']
     );
+
     expect(muter.mute).to.be.instanceof(Function);
     expect(muter.unmute).to.be.instanceof(Function);
     expect(muter.capture).to.be.instanceof(Function);
     expect(muter.uncapture).to.be.instanceof(Function);
     expect(muter.getLogs).to.be.instanceof(Function);
     expect(muter.flush).to.be.instanceof(Function);
+
+    expect(muter.isMuting).not.to.be.undefined;
+    expect(muter.isCapturing).not.to.be.undefined;
+    expect(muter.isActivated).not.to.be.undefined;
   }));
+
+  it('Advanced Muters do clean up on unmute', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
+
+    muter.mute();
+
+    console.log('log');
+    console.error('error');
+
+    expect(this.log.isMuting).to.be.true;
+    expect(this.error.isMuting).to.be.true;
+    expect(this.log.isCapturing).to.be.false;
+    expect(this.error.isCapturing).to.be.false;
+
+    expect(this.log.listenerCount('log')).to.equal(1);
+    expect(this.error.listenerCount('log')).to.equal(1);
+
+    expect(muter.getLogs()).to.equal('log\nerror\n');
+
+    muter.unmute();
+
+    expect(this.log.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.log.isCapturing).to.be.false;
+    expect(this.error.isCapturing).to.be.false;
+
+    expect(this.log.listenerCount('log')).to.equal(0);
+    expect(this.error.listenerCount('log')).to.equal(0);
+
+    expect(muter.getLogs()).to.be.undefined;
+
+  }));
+
+  it('Advanced Muters do clean up on uncapture', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
+
+    muter.capture();
+
+    console.log('captured log');
+    console.error('captured error');
+
+    expect(this.log.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.log.isCapturing).to.be.true;
+    expect(this.error.isCapturing).to.be.true;
+
+    expect(this.log.listenerCount('log')).to.equal(1);
+    expect(this.error.listenerCount('log')).to.equal(1);
+
+    expect(muter.getLogs()).to.equal('captured log\ncaptured error\n');
+
+    muter.uncapture();
+
+    expect(this.log.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.log.isCapturing).to.be.false;
+    expect(this.error.isCapturing).to.be.false;
+
+    expect(this.log.listenerCount('log')).to.equal(0);
+    expect(this.error.listenerCount('log')).to.equal(0);
+
+    expect(muter.getLogs()).to.be.undefined;
+
+  }));
+
+  it('Initializing with same logger/method twice throws an error',
+  unmutedCallback(function() {
+    expect(Muter.bind(undefined, [console, 'log'], [console, 'log'])).to
+      .throw(Error, 'Interleaving same logger twice');
+  }));
+
+  it(`States are the conjunction of every states`, unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'warn'],
+      [console, 'error']
+    );
+
+    muter.mute();
+    expect(this.log.isMuting).to.be.true;
+    expect(this.warn.isMuting).to.be.true;
+    expect(this.error.isMuting).to.be.true;
+    expect(muter.isMuting).to.be.true;
+    expect(this.log.isActivated).to.be.true;
+    expect(this.warn.isActivated).to.be.true;
+    expect(this.error.isActivated).to.be.true;
+    expect(muter.isActivated).to.be.true;
+
+    muter.unmute();
+    expect(this.log.isMuting).to.be.false;
+    expect(this.warn.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(muter.isMuting).to.be.false;
+    expect(this.log.isActivated).to.be.false;
+    expect(this.warn.isActivated).to.be.false;
+    expect(this.error.isActivated).to.be.false;
+    expect(muter.isActivated).to.be.false;
+
+    muter.capture();
+    expect(this.log.isCapturing).to.be.true;
+    expect(this.warn.isCapturing).to.be.true;
+    expect(this.error.isCapturing).to.be.true;
+    expect(muter.isCapturing).to.be.true;
+    expect(this.log.isActivated).to.be.true;
+    expect(this.warn.isActivated).to.be.true;
+    expect(this.error.isActivated).to.be.true;
+    expect(muter.isActivated).to.be.true;
+
+    muter.uncapture();
+    expect(this.log.isCapturing).to.be.false;
+    expect(this.warn.isCapturing).to.be.false;
+    expect(this.error.isCapturing).to.be.false;
+    expect(muter.isCapturing).to.be.false;
+    expect(this.log.isActivated).to.be.false;
+    expect(this.warn.isActivated).to.be.false;
+    expect(this.error.isActivated).to.be.false;
+    expect(muter.isActivated).to.be.false;
+  }));
+
+  it('Flushing advanced Muters');
+
+  it('Handling colors');
 
 });
