@@ -8,12 +8,13 @@ var loggerKeys = new Map();
 var loggerKeyCounter = 0;
 
 function key(logger, method) {
-  var key = loggerKeys.get(logger);
-  if (!key) {
+  var loggerKey = loggerKeys.get(logger);
+  if (!loggerKey) {
     loggerKeyCounter++;
-    loggerKeys.set(logger, key);
+    loggerKey = `logger${loggerKeyCounter}`;
+    loggerKeys.set(logger, loggerKey);
   }
-  return `logger${key}.${method}`;
+  return `${loggerKey}_${method}`;
 }
 
 function formatter(logger, method) {
@@ -137,7 +138,7 @@ class SimpleMuter extends EventEmitter {
     this.isMuting = true;
 
     sinon.stub(this.logger, this.method, (...args) => {
-      this.emit('log', args, this.format, this.endString);
+      this.emit('log', args, this.format, this.endString, this.boundOriginal);
     });
   }
 
@@ -149,7 +150,7 @@ class SimpleMuter extends EventEmitter {
     this.isCapturing = true;
 
     sinon.stub(this.logger, this.method, (...args) => {
-      this.emit('log', args, this.format, this.endString);
+      this.emit('log', args, this.format, this.endString, this.boundOriginal);
       this.boundOriginal(...args);
     });
   }
@@ -210,8 +211,13 @@ class SimpleMuter extends EventEmitter {
     }
 
     const logs = this.getLogs(color);
+
+    var calls = this.logger[this.method].getCalls();
+    calls.forEach(call => {
+      this.boundOriginal(...call.args);
+    });
+
     this[_unmute]();
-    this.logger[this.method](logs);
 
     if (this.isMuting) {
       this.mute();

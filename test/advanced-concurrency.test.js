@@ -1,4 +1,5 @@
 import Muter from '../src/muter';
+import {unmutedCallback, presetLoggers} from './helpers.help';
 
 import {expect} from 'chai';
 import moment from 'moment';
@@ -10,17 +11,7 @@ describe('Testing advanced concurrency for Muters:', function() {
   // Advanced concurrency means when two advanced Muters share one or more
   // simple Muters
 
-  before(function() {
-    this.methods = ['log', 'info', 'warn','error'];
-    this.methods.forEach(method => {
-      this[method] = Muter(console, method);
-    });
-
-    this.stds = ['stdout', 'stderr'];
-    this.stds.forEach(std => {
-      this[std] = Muter(process[std], 'write');
-    });
-  });
+  before(presetLoggers);
 
   it('Shared simple Muter');
 

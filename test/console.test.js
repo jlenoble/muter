@@ -156,7 +156,7 @@ And this is a second muted and flushed test message
     it(`A muter can print all or individual messages (without flushing)`,
     unmutedCallback(function() {
       this.muter.mute();
-      /*const muter = Muter(process[method === 'log' ? 'stdout' : 'stderr'],
+      const muter = Muter(process[method === 'log' ? 'stdout' : 'stderr'],
         'write');
       muter.mute();
 
@@ -173,7 +173,7 @@ message2
 message3
 `);
 
-      muter.unmute();*/
+      muter.unmute();
     }));
 
     it(`A muter can forget all messages (without printing)`,

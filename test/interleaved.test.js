@@ -277,35 +277,63 @@ describe('Testing interleaved Muters:', function() {
   unmutedCallback(function() {
     const muter = Muter(
       [console, 'log'],
-      [process.stdout, 'write']
+      [console, 'info']
     );
 
     muter.mute();
+    this.stdout.mute();
 
-    console.log('log message');
-    process.stdout.write('write message');
-    process.stdout.write('write message 2');
-    console.log('log message 2');
+    console.log('log message (flushed)');
+    console.info('info message (flushed)');
+    console.info('info message 2 (flushed)');
+    console.log('log message 2 (flushed)');
 
-    expect(muter.getLogs()).to.equal(`log message
-write messagewrite message 2log message 2
+    expect(this.log.getLogs()).to.equal(
+      'log message (flushed)\nlog message 2 (flushed)\n');
+    expect(this.info.getLogs()).to.equal(
+      'info message (flushed)\ninfo message 2 (flushed)\n');
+    expect(muter.getLogs()).to.equal(`log message (flushed)
+info message (flushed)
+info message 2 (flushed)
+log message 2 (flushed)
 `);
 
-    muter.flush();
+    expect(muter.flush()).to.equal(`log message (flushed)
+info message (flushed)
+info message 2 (flushed)
+log message 2 (flushed)
+`);
+    expect(this.stdout.getLogs()).to.equal(`log message (flushed)
+info message (flushed)
+info message 2 (flushed)
+log message 2 (flushed)
+`);
 
     expect(this.log.getLogs()).to.equal('');
-    expect(this.error.getLogs()).to.equal('');
+    expect(this.info.getLogs()).to.equal('');
     expect(muter.getLogs()).to.equal('');
+    expect(this.stdout.getLogs()).to.equal(`log message (flushed)
+info message (flushed)
+info message 2 (flushed)
+log message 2 (flushed)
+`);
 
     expect(this.log.flush()).to.equal('');
-    expect(this.error.flush()).to.equal('');
+    expect(this.info.flush()).to.equal('');
     expect(muter.flush()).to.equal('');
+    expect(this.stdout.getLogs()).to.equal(`log message (flushed)
+info message (flushed)
+info message 2 (flushed)
+log message 2 (flushed)
+`);
 
     muter.unmute();
 
     expect(this.log.flush()).to.be.undefined;
-    expect(this.error.flush()).to.be.undefined;
+    expect(this.info.flush()).to.be.undefined;
     expect(muter.flush()).to.be.undefined;
+
+    this.stdout.unmute();
   }));
 
   it('Handling colors');

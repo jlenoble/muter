@@ -1,7 +1,7 @@
 import SimpleMuter from './simple-muter';
 
 const _muters = Symbol();
-const _messages = Symbol();
+const _logs = Symbol();
 const _listener = Symbol();
 const _startListening = Symbol();
 const _stopListening = Symbol();
@@ -25,9 +25,12 @@ class AdvancedMuter {
     const properties = {
 
       [_muters]: {value: new Map()},
-      [_messages]: {value: []},
-      [_listener]: {value: (args, format, endString) => {
-          this[_messages].push(format(...args) + endString);
+      [_logs]: {value: []},
+      [_listener]: {value: (args, format, endString, boundOriginal) => {
+          this[_logs].push({
+            boundOriginal, args,
+            message: format(...args) + endString
+          });
         }},
       [_startListening]: {value: startListening},
       [_stopListening]: {value: stopListening},
@@ -85,7 +88,7 @@ class AdvancedMuter {
     this[_muters].forEach(muter => {
       muter.unmute();
     });
-    this[_messages].length = 0;
+    this[_logs].length = 0;
     this[_stopListening]();
   }
 
@@ -93,13 +96,13 @@ class AdvancedMuter {
     this[_muters].forEach(muter => {
       muter.uncapture();
     });
-    this[_messages].length = 0;
+    this[_logs].length = 0;
     this[_stopListening]();
   }
 
   getLogs(color) {
     if (this.isActivated) {
-      return this[_messages].join('');
+      return this[_logs].map(log => log.message).join('');
     }
   }
 
@@ -109,7 +112,29 @@ class AdvancedMuter {
     }
 
     const logs = this.getLogs(color);
-    this[_messages].length = 0;
+
+    this[_logs].forEach(log => {
+      log.boundOriginal(...log.args);
+    });
+
+    this[_logs].length = 0;
+    this[_muters].forEach(muter => {
+      muter.forget();
+    });
+
+    return logs;
+  }
+
+  forget() {
+    if (!this.isActivated) {
+      return;
+    }
+
+    const logs = this.getLogs(color);
+    this[_logs].length = 0;
+    this[_muters].forEach(muter => {
+      muter.forget();
+    });
 
     return logs;
   }
