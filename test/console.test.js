@@ -160,6 +160,8 @@ And this is a second muted and flushed test message`);
 
       expect(this.muter.flush()).to.equal(
         `And this is a third muted and flushed test message`);
+
+      expect(this.muter.flush()).to.equal('');
     }));
 
   });
