@@ -1,6 +1,7 @@
 import Muter from '../src/muter';
 
 import {expect} from 'chai';
+import chalk from 'chalk';
 
 const logger = console;
 const methods = ['log', 'warn', 'error'];
@@ -162,6 +163,64 @@ And this is a second muted and flushed test message`);
         `And this is a third muted and flushed test message`);
 
       expect(this.muter.flush()).to.equal('');
+    }));
+
+    it(`The Nth message can be accessed by calling 'getLog'`,
+    unmutedCallback(function() {
+      this.muter.mute();
+
+      logger[method]('message1');
+      logger[method]('message2');
+      logger[method]('message3');
+
+      expect(this.muter.getLog(0)).to.equal('message1\n');
+      expect(this.muter.getLog(1, 'blue')).to.equal(chalk.blue('message2\n'));
+      expect(this.muter.getLog(2, 'red')).to.equal(chalk.red('message3\n'));
+    }));
+
+    it(`A muter can print all or individual messages (without flushing)`,
+    unmutedCallback(function() {
+      this.muter.mute();
+      /*const muter = Muter(process[method === 'log' ? 'stdout' : 'stderr'],
+        'write');
+      muter.mute();
+
+      logger[method]('message1');
+      logger[method]('message2');
+      logger[method]('message3');
+
+      this.muter.print(1);
+      this.muter.print();
+
+      expect(muter.getLogs()).to.equal(`message2
+message1
+message2
+message3
+`);
+
+      muter.unmute();*/
+    }));
+
+    it(`A muter can forget all messages (without printing)`,
+    unmutedCallback(function() {
+      this.muter.mute();
+
+      logger[method]('message1');
+      logger[method]('message2');
+      logger[method]('message3');
+
+      expect(this.muter.forget()).to.equal(`message1
+message2
+message3`);
+      expect(this.muter.getLogs()).to.equal('');
+      expect(this.muter.forget()).to.equal('');
+
+      logger[method]('message4');
+
+      expect(this.muter.getLogs()).to.equal('message4');
+      expect(this.muter.forget()).to.equal('message4');
+      expect(this.muter.getLogs()).to.equal('');
+      expect(this.muter.forget()).to.equal('');
     }));
 
   });

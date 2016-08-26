@@ -4,6 +4,17 @@ import util from 'util';
 import EventEmitter from 'events';
 
 var muters = new Map();
+var loggerKeys = new Map();
+var loggerKeyCounter = 0;
+
+function key(logger, method) {
+  var key = loggerKeys.get(logger);
+  if (!key) {
+    loggerKeyCounter++;
+    loggerKeys.set(logger, key);
+  }
+  return `logger${key}.${method}`;
+}
 
 function formatter(logger, method) {
   if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
@@ -46,7 +57,7 @@ class SimpleMuter extends EventEmitter {
 
     super();
 
-    var muter = muters.get(logger[method]);
+    var muter = muters.get(key(logger, method));
 
     if (muter) {
       return muter;
@@ -112,7 +123,7 @@ class SimpleMuter extends EventEmitter {
 
     Object.defineProperties(muter, properties);
 
-    muters.set(logger[method], muter);
+    muters.set(key(logger, method), muter);
 
     return muter;
 
@@ -153,6 +164,32 @@ class SimpleMuter extends EventEmitter {
     this.isCapturing = false;
   }
 
+  print(nth) {
+    if (this.isActivated) {
+      if (nth) {
+        var call = this.logger[this.method].getCalls()[nth];
+
+        this.boundOriginal(...call.args);
+      } else {
+        var calls = this.logger[this.method].getCalls();
+
+        calls.forEach(call => {
+          this.boundOriginal(...call.args);
+        });
+      }
+    }
+  }
+
+  getLog(nth, color) {
+    if (this.isActivated) {
+      var call = this.logger[this.method].getCalls()[nth];
+
+      call = this.format(...call.args) + this.endString;
+
+      return color ? chalk[color](call) : call;
+    }
+  }
+
   getLogs(color) {
     if (this.isActivated) {
       var calls = this.logger[this.method].getCalls();
@@ -175,6 +212,26 @@ class SimpleMuter extends EventEmitter {
     const logs = this.getLogs(color);
     this[_unmute]();
     this.logger[this.method](logs);
+
+    if (this.isMuting) {
+      this.mute();
+    } else if (this.isCapturing) {
+      this.capture();
+    } else {
+      throw new Error('Muter was neither muting nor capturing, ' +
+        'yet trying to remute/recapture after flushing');
+    }
+
+    return logs;
+  }
+
+  forget() {
+    if (!this.isActivated) {
+      return;
+    }
+
+    const logs = this.getLogs();
+    this[_unmute]();
 
     if (this.isMuting) {
       this.mute();
