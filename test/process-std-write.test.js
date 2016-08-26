@@ -1,39 +1,14 @@
 import Muter from '../src/muter';
+import {unmutedCallback} from './helpers.help';
 
 import {expect} from 'chai';
 
 const logger = process.stdout;
 const method = 'write';
 
-function unmute() {
-  logger[method].restore && logger[method].restore();
-}
-
 const originalLoggingFunction = logger[method];
 
 describe(`Testing Muter factory with process.stdout.write:`, function() {
-
-  const unmutedCallback = function(func) {
-    // Wrapping Mocha callbacks is necessary due to the fact that these tests
-    // interfere with Mocha's logs, so we undo output capturing before Mocha
-    // reports its results (and can't use 'after' as 'it' messages are
-    // output right away)
-    return function() {
-      try {
-        func.call(this);
-
-        // Mocha shouldn't output a message if test passes since
-        // stdout/stderr is muted, so unmute before leaving
-        unmute();
-      } catch (e) {
-        // In order for Mocha to print all info when failing, unmute before
-        // rethrowing
-        unmute();
-
-        throw e;
-      }
-    };
-  };
 
   before(function() {
     expect(logger[method]).to.equal(originalLoggingFunction);

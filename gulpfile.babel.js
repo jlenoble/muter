@@ -23,12 +23,14 @@ const buildDir = 'build';
 const distDir = 'lib';
 const srcGlob = 'src/*.js';
 const testSrcGlob = 'test/*.test.js';
+const helperSrcGlob = 'test/*.help.js';
 
-const allSrcGlob = [srcGlob, testSrcGlob];
+const allSrcGlob = [srcGlob, testSrcGlob, helperSrcGlob];
 const testBuildGlob = path.join(buildDir, testSrcGlob);
 const allBuildGlob = [
   path.join(buildDir, srcGlob),
-  path.join(buildDir, testSrcGlob)
+  path.join(buildDir, testSrcGlob),
+  path.join(buildDir, helperSrcGlob)
 ];
 
 const build = () => {
