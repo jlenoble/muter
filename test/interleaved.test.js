@@ -307,7 +307,63 @@ describe('Testing interleaved Muters:', function() {
     expect(muter.isActivated).to.be.false;
   }));
 
-  it('Flushing advanced Muters');
+  it('Muting twice an advanced Muter throws', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
+
+    muter.mute();
+    expect(muter.mute.bind(muter)).to.throw(Error,
+      `Muter is already activated, don't call 'mute'`);
+  }));
+
+  it('Unmuting twice an advanced Muter is Ok', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
+
+    muter.mute();
+    muter.unmute();
+    expect(muter.unmute.bind(muter)).not.to.throw();
+    expect(muter.isActivated).to.be.false;
+  }));
+
+  it('Flushing advanced Muters works like simple Muters',
+  unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [process.stdout, 'write']
+    );
+
+    muter.mute();
+
+    console.log('log message');
+    process.stdout.write('write message');
+    process.stdout.write('write message 2');
+    console.log('log message 2');
+
+    expect(muter.getLogs()).to.equal(`log message
+write messagewrite message 2log message 2
+`);
+
+    muter.flush();
+
+    expect(this.log.getLogs()).to.equal('');
+    expect(this.error.getLogs()).to.equal('');
+    expect(muter.getLogs()).to.equal('');
+
+    expect(this.log.flush()).to.equal('');
+    expect(this.error.flush()).to.equal('');
+    expect(muter.flush()).to.equal('');
+
+    muter.unmute();
+
+    expect(this.log.flush()).to.be.undefined;
+    expect(this.error.flush()).to.be.undefined;
+    expect(muter.flush()).to.be.undefined;
+  }));
 
   it('Handling colors');
 

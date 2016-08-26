@@ -98,13 +98,20 @@ class AdvancedMuter {
   }
 
   getLogs(color) {
-    if (this[_messages].length) {
+    if (this.isActivated) {
       return this[_messages].join('');
     }
   }
 
   flush(color) {
+    if (!this.isActivated) {
+      return;
+    }
 
+    const logs = this.getLogs(color);
+    this[_messages].length = 0;
+
+    return logs;
   }
 
 }
