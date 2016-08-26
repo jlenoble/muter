@@ -14,7 +14,7 @@ describe(`Testing README.md examples:`, function() {
     expect(console.error).not.to.equal(originalLoggingFunctions.error);
 
     console.error('Test message'); // This message should not be printed
-    expect(muter.getLogs()).to.equal('Test message');
+    expect(muter.getLogs()).to.equal('Test message\n');
 
     console.log(muter.getLogs('red'), ': expected and printed in red');
     // Should print on stdout 'Test message' in red and ': expected and
@@ -33,7 +33,7 @@ describe(`Testing README.md examples:`, function() {
 
     console.error('Another test message'); // This message should be
     // printed in default color
-    expect(muter.getLogs()).to.equal('Another test message');
+    expect(muter.getLogs()).to.equal('Another test message\n');
 
     console.log(muter.getLogs('red'),
       ': expected twice, first in default color, second in red');
@@ -53,7 +53,7 @@ describe(`Testing README.md examples:`, function() {
 
     console.error('And another test message'); // This message should be
     // printed in default color
-    expect(muter.getLogs()).to.equal('And another test message');
+    expect(muter.getLogs()).to.equal('And another test message\n');
 
     console.log(muter.flush('red'), ': message expected thrice, first in' +
       ' default color, then 2 in red');
@@ -86,7 +86,8 @@ describe(`Testing README.md examples:`, function() {
     // 3) Cute test message 3
     expect(muter.getLogs()).to.equal(`1) Cute test message 1
 2) Cute test message 2
-3) Cute test message 3`);
+3) Cute test message 3
+`);
 
     muter.unmute();
     expect(console.error).to.equal(originalLoggingFunctions.error);
@@ -140,8 +141,9 @@ describe(`Testing README.md examples:`, function() {
     // 'muted log message' in blue
     // 'captured/unmuted error message' in yellow
     expect(warn.getLogs()).to.equal(`muted warning
-${chalk.blue('muted log message')}
-${chalk.yellow('captured/unmuted error message')}`);
+${chalk.blue('muted log message\n')}
+${chalk.yellow('captured/unmuted error message\n')}
+`);
 
     warn.unmute();
     expect(console.warn).to.equal(originalLoggingFunctions.warn);

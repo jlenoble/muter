@@ -42,8 +42,7 @@ methods.forEach(method => {
       logger[method]('Hello');
       logger[method]('World!');
 
-      expect(this.muter.getLogs()).to.equal(`Hello
-World!`);
+      expect(this.muter.getLogs()).to.equal(`Hello\nWorld!\n`);
     }));
 
     it(`Once unmuted, muter's method 'getLogs' returns nothing`,
@@ -53,8 +52,7 @@ World!`);
       logger[method]('Hello');
       logger[method]('World!');
 
-      expect(this.muter.getLogs()).to.equal(`Hello
-World!`);
+      expect(this.muter.getLogs()).to.equal(`Hello\nWorld!\n`);
 
       this.muter.unmute();
 
@@ -68,7 +66,7 @@ World!`);
 
       logger[method]('Hello', 'World!');
 
-      expect(this.muter.getLogs()).to.equal('Hello World!');
+      expect(this.muter.getLogs()).to.equal('Hello World!\n');
 
       this.muter.unmute();
 
@@ -79,7 +77,7 @@ World!`);
 
       logger[method]('%s Mr %s', 'Hello', 'World!');
 
-      expect(this.muter.getLogs()).to.equal('Hello Mr World!');
+      expect(this.muter.getLogs()).to.equal('Hello Mr World!\n');
 
       this.muter.unmute();
 
@@ -91,7 +89,7 @@ World!`);
       const error = new Error('Controlled test error');
       logger[method](error);
 
-      expect(this.muter.getLogs()).to.equal(error.stack);
+      expect(this.muter.getLogs()).to.equal(error.stack + '\n');
     }));
 
     it(`A muter captures messages without muting console.${method}` +
@@ -106,7 +104,8 @@ World!`);
 
       expect(this.muter.getLogs()).to.equal(
         `This is an unmuted test message that should be captured by muter
-And this is a second unmuted test message`);
+And this is a second unmuted test message
+`);
     }));
 
     it(`A muter uncaptures console.${method}'s messages` +
@@ -130,12 +129,13 @@ And this is a second unmuted test message`);
 
       expect(this.muter.flush()).to.equal(
         `This is a muted test message that should be flushed by muter
-And this is a second muted and flushed test message`);
+And this is a second muted and flushed test message
+`);
 
       logger[method]('And this is a third muted and flushed test message');
 
       expect(this.muter.flush()).to.equal(
-        `And this is a third muted and flushed test message`);
+        `And this is a third muted and flushed test message\n`);
 
       expect(this.muter.flush()).to.equal('');
     }));
@@ -186,14 +186,15 @@ message3
 
       expect(this.muter.forget()).to.equal(`message1
 message2
-message3`);
+message3
+`);
       expect(this.muter.getLogs()).to.equal('');
       expect(this.muter.forget()).to.equal('');
 
       logger[method]('message4');
 
-      expect(this.muter.getLogs()).to.equal('message4');
-      expect(this.muter.forget()).to.equal('message4');
+      expect(this.muter.getLogs()).to.equal('message4\n');
+      expect(this.muter.forget()).to.equal('message4\n');
       expect(this.muter.getLogs()).to.equal('');
       expect(this.muter.forget()).to.equal('');
     }));

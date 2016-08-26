@@ -72,8 +72,8 @@ describe('Testing interleaved Muters:', function() {
     console.info('info2');
     console.log('log2');
 
-    expect(this.log.getLogs()).to.equal('log1\nlog2');
-    expect(this.info.getLogs()).to.equal('info1\ninfo2');
+    expect(this.log.getLogs()).to.equal('log1\nlog2\n');
+    expect(this.info.getLogs()).to.equal('info1\ninfo2\n');
     expect(muter.getLogs()).to.equal('log1\ninfo1\ninfo2\nlog2\n');
   }));
 

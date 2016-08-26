@@ -39,7 +39,7 @@ describe(`Testing Muter concurrency:`, function() {
     console.log('Test console.log, should be muted');
     console.error('Test console.error, should be unmuted');
 
-    expect(this.log.getLogs()).to.equal('Test console.log, should be muted');
+    expect(this.log.getLogs()).to.equal('Test console.log, should be muted\n');
     expect(this.error.getLogs()).to.be.undefined;
 
     this.error.mute();
@@ -48,9 +48,10 @@ describe(`Testing Muter concurrency:`, function() {
     console.error('Test console.error 2, should be muted');
 
     expect(this.log.getLogs()).to.equal(`Test console.log, should be muted
-Test console.log 2, should be muted`);
+Test console.log 2, should be muted
+`);
     expect(this.error.getLogs()).to.equal(
-      'Test console.error 2, should be muted');
+      'Test console.error 2, should be muted\n');
 
     this.log.unmute();
 
@@ -60,7 +61,8 @@ Test console.log 2, should be muted`);
     expect(this.log.getLogs()).to.be.undefined;
     expect(this.error.getLogs()).to.equal(
       `Test console.error 2, should be muted
-Test console.error 3, should be muted`);
+Test console.error 3, should be muted
+`);
 
     this.log.capture();
 
@@ -68,11 +70,12 @@ Test console.error 3, should be muted`);
     console.error('Test console.error 4, should be muted');
 
     expect(this.log.getLogs()).to.equal(
-      'Test console.log 4, should be captured');
+      'Test console.log 4, should be captured\n');
     expect(this.error.getLogs()).to.equal(
       `Test console.error 2, should be muted
 Test console.error 3, should be muted
-Test console.error 4, should be muted`);
+Test console.error 4, should be muted
+`);
   }));
 
   it(`console.warn and console.error don't interfere`, unmutedCallback(
@@ -82,7 +85,8 @@ Test console.error 4, should be muted`);
     console.warn('Test console.warn, should be muted');
     console.error('Test console.error, should be unmuted');
 
-    expect(this.warn.getLogs()).to.equal('Test console.warn, should be muted');
+    expect(this.warn.getLogs()).to.equal(
+      'Test console.warn, should be muted\n');
     expect(this.error.getLogs()).to.be.undefined;
 
     this.error.mute();
@@ -91,9 +95,10 @@ Test console.error 4, should be muted`);
     console.error('Test console.error 2, should be muted');
 
     expect(this.warn.getLogs()).to.equal(`Test console.warn, should be muted
-Test console.warn 2, should be muted`);
+Test console.warn 2, should be muted
+`);
     expect(this.error.getLogs()).to.equal(
-      'Test console.error 2, should be muted');
+      'Test console.error 2, should be muted\n');
 
     this.warn.unmute();
 
@@ -103,7 +108,8 @@ Test console.warn 2, should be muted`);
     expect(this.warn.getLogs()).to.be.undefined;
     expect(this.error.getLogs()).to.equal(
       `Test console.error 2, should be muted
-Test console.error 3, should be muted`);
+Test console.error 3, should be muted
+`);
 
     this.warn.capture();
 
@@ -111,11 +117,12 @@ Test console.error 3, should be muted`);
     console.error('Test console.error 4, should be muted');
 
     expect(this.warn.getLogs()).to.equal(
-      'Test console.warn 4, should be captured');
+      'Test console.warn 4, should be captured\n');
     expect(this.error.getLogs()).to.equal(
       `Test console.error 2, should be muted
 Test console.error 3, should be muted
-Test console.error 4, should be muted`);
+Test console.error 4, should be muted
+`);
   }));
 
   it(`console.log and console.info don't interfere`, unmutedCallback(
@@ -125,7 +132,7 @@ Test console.error 4, should be muted`);
     console.log('Test console.log, should be muted');
     console.info('Test console.info, should be unmuted');
 
-    expect(this.log.getLogs()).to.equal('Test console.log, should be muted');
+    expect(this.log.getLogs()).to.equal('Test console.log, should be muted\n');
     expect(this.info.getLogs()).to.be.undefined;
 
     this.info.mute();
@@ -134,9 +141,10 @@ Test console.error 4, should be muted`);
     console.info('Test console.info 2, should be muted');
 
     expect(this.log.getLogs()).to.equal(`Test console.log, should be muted
-Test console.log 2, should be muted`);
+Test console.log 2, should be muted
+`);
     expect(this.info.getLogs()).to.equal(
-      'Test console.info 2, should be muted');
+      'Test console.info 2, should be muted\n');
 
     this.log.unmute();
 
@@ -146,7 +154,8 @@ Test console.log 2, should be muted`);
     expect(this.log.getLogs()).to.be.undefined;
     expect(this.info.getLogs()).to.equal(
       `Test console.info 2, should be muted
-Test console.info 3, should be muted`);
+Test console.info 3, should be muted
+`);
 
     this.log.capture();
 
@@ -154,11 +163,12 @@ Test console.info 3, should be muted`);
     console.info('Test console.info 4, should be muted');
 
     expect(this.log.getLogs()).to.equal(
-      'Test console.log 4, should be captured');
+      'Test console.log 4, should be captured\n');
     expect(this.info.getLogs()).to.equal(
       `Test console.info 2, should be muted
 Test console.info 3, should be muted
-Test console.info 4, should be muted`);
+Test console.info 4, should be muted
+`);
   }));
 
 });

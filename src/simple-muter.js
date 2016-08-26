@@ -195,10 +195,10 @@ class SimpleMuter extends EventEmitter {
       var calls = this.logger[this.method].getCalls();
 
       calls = calls.map(call => {
-        return this.format(...call.args);
+        return this.format(...call.args) + this.endString;
       });
 
-      calls = calls.join(this.endString);
+      calls = calls.join('');
 
       return color ? chalk[color](calls) : calls;
     }
