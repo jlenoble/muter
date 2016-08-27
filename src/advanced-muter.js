@@ -71,17 +71,50 @@ class AdvancedMuter {
 
       isMuting: {
         get() {
-          return [...this[_muters].values()].every(muter => muter.isMuting);
+          var muting;
+          [...this[_muters].values()].forEach(muter => {
+            if (muting === undefined) {
+              muting = muter.isMuting;
+            } else {
+              if (muting !== muter.isMuting) {
+                throw new Error(
+`Muters referenced by advanced Muter have inconsistent muting state`);
+              }
+            }
+          });
+          return muting;
         }
       },
       isCapturing: {
         get() {
-          return [...this[_muters].values()].every(muter => muter.isCapturing);
+          var muting;
+          [...this[_muters].values()].forEach(muter => {
+            if (muting === undefined) {
+              muting = muter.isCapturing;
+            } else {
+              if (muting !== muter.isCapturing) {
+                throw new Error(
+`Muters referenced by advanced Muter have inconsistent capturing state`);
+              }
+            }
+          });
+          return muting;
         }
       },
       isActivated: {
         get() {
-          return [...this[_muters].values()].every(muter => muter.isActivated);
+          var muting;
+          [...this[_muters].values()].forEach(muter => {
+            if (muting === undefined) {
+              muting = muter.isActivated;
+            } else {
+              if (muting !== muter.isActivated) {
+                throw new Error(
+`Muters referenced by advanced Muter have inconsistent activated state`);
+              }
+            }
+          });
+          return muting;
         }
       }
 
