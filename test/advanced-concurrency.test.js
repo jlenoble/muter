@@ -170,6 +170,31 @@ describe('Testing advanced concurrency for Muters:', function() {
     muter.uncapture();
   }));
 
-  it('Colors');
+  it('Advanced color concurrency', unmutedCallback(function() {
+    const logger1 = {log: console.log};
+    const logger2 = {log: console.log};
+
+    this.logger1 = Muter(logger1, 'log', {color: 'green'});
+    this.logger2 = Muter(logger2, 'log', {color: 'red'});
+
+    const muter = Muter(
+      [logger1, 'log', {color: 'cyan'}],
+      [logger2, 'log', {color: 'magenta'}]
+    );
+
+    muter.mute();
+
+    logger1.log('green');
+    logger2.log('red');
+
+    expect(this.logger1.getLogs()).to.equal(chalk.green('green\n'));
+    expect(this.logger2.getLogs()).to.equal(chalk.red('red\n'));
+    expect(this.logger1.getLogs('blue')).to.equal(chalk.blue('green\n'));
+    expect(this.logger2.getLogs('blue')).to.equal(chalk.blue('red\n'));
+    expect(muter.getLogs()).to.equal(chalk.cyan('green\n') +
+      chalk.magenta('red\n'));
+    expect(muter.getLogs('blue')).to.equal(chalk.blue('green\n') +
+      chalk.blue('red\n'));
+  }));
 
 });
