@@ -133,6 +133,30 @@ describe(`Testing Muter factory with process.stdout.write:`, function() {
       `And this is a third muted and flushed test message`);
   }));
 
-  it(`Concurrency between stdout and stderr`);
+  it(`Concurrency between stdout and stderr`, unmutedCallback(function() {
+    expect(process.stdout.write).to.equal(process.stderr.write);
+
+    this.muter.mute();
+    const muter = Muter(process.stderr, 'write');
+    muter.mute();
+
+    expect(process.stdout.write).not.to.equal(process.stderr.write);
+
+    process.stdout.write('out1');
+    process.stderr.write('err1');
+    process.stderr.write('err2');
+    process.stdout.write('out2');
+
+    expect(this.muter.getLogs()).to.equal('out1out2');
+    expect(muter.getLogs()).to.equal('err1err2');
+
+    this.muter.unmute();
+    muter.unmute();
+
+    expect(this.muter.getLogs()).to.be.undefined;
+    expect(muter.getLogs()).to.be.undefined;
+
+    expect(process.stdout.write).to.equal(process.stderr.write);
+  }));
 
 });
