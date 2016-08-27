@@ -1,8 +1,17 @@
 import SimpleMuter from './simple-muter';
 
+import chalk from 'chalk';
+
 const _muters = Symbol();
+const _options = Symbol();
+
+const _key = Symbol();
+const _loggerKeys = Symbol();
+const _loggerKeyCounter = Symbol();
+
 const _logs = Symbol();
 const _listener = Symbol();
+
 const _startListening = Symbol();
 const _stopListening = Symbol();
 
@@ -25,13 +34,38 @@ class AdvancedMuter {
     const properties = {
 
       [_muters]: {value: new Map()},
+      [_options]: {value: new Map()},
+
+      [_key]: {value: (logger, method) => {
+          var loggerKey = this[_loggerKeys].get(logger);
+          if (!loggerKey) {
+            this[_loggerKeyCounter]++;
+            loggerKey = `logger${this[_loggerKeyCounter]}`;
+            this[_loggerKeys].set(logger, loggerKey);
+          }
+          return `${loggerKey}_${method}`;
+        }},
+      [_loggerKeys]: {value: new Map()},
+      [_loggerKeyCounter]: {value: 0, writable: true},
+
       [_logs]: {value: []},
-      [_listener]: {value: (args, format, endString, boundOriginal) => {
+      [_listener]: {value: (args, muter) => {
+          const key = this[_key](muter.logger, muter.method);
+          var color = this[_options].get(key).color;
+          if (!color) {
+            color = muter.color;
+          }
+
           this[_logs].push({
-            boundOriginal, args,
-            message: format(...args) + endString
+            args,
+            format: muter.format,
+            endString: muter.endString,
+            boundOriginal: muter.boundOriginal,
+            color,
+            message: muter.format(...args) + muter.endString
           });
         }},
+
       [_startListening]: {value: startListening},
       [_stopListening]: {value: stopListening},
 
@@ -56,16 +90,25 @@ class AdvancedMuter {
     Object.defineProperties(this, properties);
 
     loggers.forEach(logger => {
-      var muter = this[_muters].get(logger[0][logger[1]]);
-      if (!muter) {
-        muter = new SimpleMuter(
-          logger[0], logger[1], logger[2]
-        );
-        this[_muters].set(logger[0][logger[1]], muter);
-      } else {
-        throw new Error(
-          `Interleaving same logger twice`);
+      var muter = this[_muters].get(this[_key](logger[0], logger[1]));
+
+      if (muter) {
+        throw new Error(`Interleaving same logger twice`);
       }
+
+      muter = new SimpleMuter(
+        logger[0], logger[1], logger[2]
+      );
+
+      var options = logger[2];
+      if (!options) {
+        options = {};
+      }
+
+      this[_muters].set(this[_key](logger[0], logger[1]), muter);
+      this[_options].set(this[_key](logger[0], logger[1]), {
+        color: options.color
+      });
     });
 
   }
@@ -102,7 +145,10 @@ class AdvancedMuter {
 
   getLogs(color) {
     if (this.isActivated) {
-      return this[_logs].map(log => log.message).join('');
+      return this[_logs].map(log => {
+        let _color = color ? color : log.color;
+        return _color ? chalk[_color](log.message) : log.message;
+      }).join('');
     }
   }
 

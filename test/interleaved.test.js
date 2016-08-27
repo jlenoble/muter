@@ -336,6 +336,28 @@ log message 2 (flushed)
     this.stdout.unmute();
   }));
 
-  it('Handling colors');
+  it('Advanced Muters can color their output', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'info', {color: 'green'}],
+      [console, 'warn', {color: 'yellow'}],
+      [console, 'error', {color: 'red'}]
+    );
+
+    muter.mute();
+
+    console.info('color test: Stage1');
+    console.warn('color test: Some warning');
+    console.info('color test: Stage2');
+    console.error('color test: Grave error');
+
+    expect(muter.flush()).to.equal(
+      chalk.green('color test: Stage1\n') +
+      chalk.yellow('color test: Some warning\n') +
+      chalk.green('color test: Stage2\n') +
+      chalk.red('color test: Grave error\n')
+    );
+
+    muter.unmute();
+  }));
 
 });

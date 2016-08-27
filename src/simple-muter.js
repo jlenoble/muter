@@ -77,6 +77,7 @@ class SimpleMuter extends EventEmitter {
         formatter(logger, method)},
       endString: {value: options.endString ? options.endString :
         endString(logger, method)},
+      color: {value: options.color ? options.color : undefined},
 
       [_unmute]: {value: unmuter(logger, method)},
 
@@ -138,7 +139,7 @@ class SimpleMuter extends EventEmitter {
     this.isMuting = true;
 
     sinon.stub(this.logger, this.method, (...args) => {
-      this.emit('log', args, this.format, this.endString, this.boundOriginal);
+      this.emit('log', args, this);
     });
   }
 
@@ -150,7 +151,7 @@ class SimpleMuter extends EventEmitter {
     this.isCapturing = true;
 
     sinon.stub(this.logger, this.method, (...args) => {
-      this.emit('log', args, this.format, this.endString, this.boundOriginal);
+      this.emit('log', args, this);
       this.boundOriginal(...args);
     });
   }
@@ -187,6 +188,10 @@ class SimpleMuter extends EventEmitter {
 
       call = this.format(...call.args) + this.endString;
 
+      if (!color && this.color) {
+        color = this.color;
+      }
+
       return color ? chalk[color](call) : call;
     }
   }
@@ -200,6 +205,10 @@ class SimpleMuter extends EventEmitter {
       });
 
       calls = calls.join('');
+
+      if (!color && this.color) {
+        color = this.color;
+      }
 
       return color ? chalk[color](calls) : calls;
     }
