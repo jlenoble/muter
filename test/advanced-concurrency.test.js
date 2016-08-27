@@ -15,7 +15,10 @@ describe('Testing advanced concurrency for Muters:', function() {
 
   it('Shared simple Muter', unmutedCallback(function() {
     const muter1 = Muter(console, 'log');
-    const muter2 = Muter(console, 'log');
+    const muter2 = Muter(
+      [console, 'log'],
+      [console, 'error']
+    );
     const muter3 = Muter(
       [console, 'log'],
       [console, 'info']
@@ -23,8 +26,20 @@ describe('Testing advanced concurrency for Muters:', function() {
 
     muter1.mute();
 
+    expect(this.log.isMuting).to.be.true;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.info.isMuting).to.be.false;
+
     expect(muter1.isMuting).to.be.true;
-    expect(muter2.isMuting).to.be.true;
+
+    expect(() => muter2.isMuting).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent muting state`);
+    expect(muter2.isCapturing).to.be.false;
+    expect(() => muter2.isActivated).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent activated state`);
+    expect(muter2.getLogs.bind(muter2)).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent activated state`);
+
     expect(() => muter3.isMuting).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent muting state`);
     expect(muter3.isCapturing).to.be.false;
@@ -32,35 +47,59 @@ describe('Testing advanced concurrency for Muters:', function() {
       `Muters referenced by advanced Muter have inconsistent activated state`);
     expect(muter3.getLogs.bind(muter3)).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent activated state`);
-    expect(this.log.isMuting).to.be.true;
-    expect(this.info.isMuting).to.be.false;
 
     muter2.unmute();
 
+    expect(this.log.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.info.isMuting).to.be.false;
+
     expect(muter1.isMuting).to.be.false;
+
     expect(muter2.isMuting).to.be.false;
+    expect(muter2.isCapturing).to.be.false;
+    expect(muter2.isActivated).to.be.false;
+    expect(muter2.getLogs()).to.be.undefined;
+
     expect(muter3.isMuting).to.be.false;
     expect(muter3.isCapturing).to.be.false;
     expect(muter3.isActivated).to.be.false;
     expect(muter3.getLogs()).to.be.undefined;
-    expect(this.log.isMuting).to.be.false;
-    expect(this.info.isMuting).to.be.false;
 
     muter3.mute();
 
+    expect(this.log.isMuting).to.be.true;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.info.isMuting).to.be.true;
+
     expect(muter1.isMuting).to.be.true;
-    expect(muter2.isMuting).to.be.true;
+
+    expect(() => muter2.isMuting).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent muting state`);
+    expect(muter2.isCapturing).to.be.false;
+    expect(() => muter2.isActivated).to.be.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent activated state`);
+    expect(muter2.getLogs.bind(muter2)).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent activated state`);
+
     expect(muter3.isMuting).to.be.true;
     expect(muter3.isCapturing).to.be.false;
     expect(muter3.isActivated).to.be.true;
     expect(muter3.getLogs()).to.equal('');
-    expect(this.log.isMuting).to.be.true;
-    expect(this.info.isMuting).to.be.true;
 
     muter2.unmute();
 
+    expect(this.log.isMuting).to.be.false;
+    expect(this.error.isMuting).to.be.false;
+    expect(this.info.isMuting).to.be.true;
+
     expect(muter1.isMuting).to.be.false;
+
     expect(muter2.isMuting).to.be.false;
+    expect(muter2.isCapturing).to.be.false;
+    expect(muter2.isActivated).to.be.false;
+    expect(muter2.getLogs()).to.be.undefined;
+
     expect(() => muter3.isMuting).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent muting state`);
     expect(muter3.isCapturing).to.be.false;
@@ -68,11 +107,35 @@ describe('Testing advanced concurrency for Muters:', function() {
       `Muters referenced by advanced Muter have inconsistent activated state`);
     expect(muter3.getLogs.bind(muter3)).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent activated state`);
-    expect(this.log.isMuting).to.be.false;
-    expect(this.info.isMuting).to.be.true;
   }));
 
-  it('Direct restore');
+  it('Direct restore', unmutedCallback(function() {
+    const muter = Muter(
+      [console, 'log'],
+      [console, 'warn']
+    );
+
+    muter.mute();
+
+    console.log('log1');
+    console.warn('warn1');
+
+    console.log.restore();
+
+    console.warn('warn2');
+    console.log('log2');
+
+    expect(this.log.getLogs()).to.be.undefined;
+    expect(this.warn.getLogs()).to.equal('warn1\nwarn2\n');
+    expect(muter.getLogs.bind(muter)).to.throw(Error,
+      `Muters referenced by advanced Muter have inconsistent activated state`);
+
+    console.warn.restore();
+
+    expect(muter.getLogs()).to.be.undefined;
+    expect(muter.isActivated).to.be.false;
+    expect(muter.isMuting).to.be.false;
+  }));
 
   it('Method shared across loggers', unmutedCallback(function() {
     const logger1 = {log: console.log};
