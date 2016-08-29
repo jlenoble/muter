@@ -189,11 +189,12 @@ describe('Testing advanced concurrency for Muters:', function() {
 
     expect(this.logger1.getLogs()).to.equal(chalk.green('green\n'));
     expect(this.logger2.getLogs()).to.equal(chalk.red('red\n'));
-    expect(this.logger1.getLogs('blue')).to.equal(chalk.blue('green\n'));
-    expect(this.logger2.getLogs('blue')).to.equal(chalk.blue('red\n'));
+    expect(this.logger1.getLogs({color: 'blue'})).to.equal(
+      chalk.blue('green\n'));
+    expect(this.logger2.getLogs({color: 'blue'})).to.equal(chalk.blue('red\n'));
     expect(muter.getLogs()).to.equal(chalk.cyan('green\n') +
       chalk.magenta('red\n'));
-    expect(muter.getLogs('blue')).to.equal(chalk.blue('green\n') +
+    expect(muter.getLogs({color: 'blue'})).to.equal(chalk.blue('green\n') +
       chalk.blue('red\n'));
   }));
 

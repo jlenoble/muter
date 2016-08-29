@@ -51,18 +51,27 @@ class AdvancedMuter {
       [_logs]: {value: []},
       [_listener]: {value: (args, muter) => {
           const key = this[_key](muter.logger, muter.method);
-          var color = this[_options].get(key).color;
+          const options = this[_options].get(key);
+
+          var color = options.color;
+          var format = options.format;
+          var endString = options.endString;
+
           if (!color) {
             color = muter.color;
           }
 
+          if (!format) {
+            format = muter.format;
+          }
+
+          if (!endString) {
+            endString = muter.endString;
+          }
+
           this[_logs].push({
-            args,
-            format: muter.format,
-            endString: muter.endString,
-            boundOriginal: muter.boundOriginal,
-            color,
-            message: muter.format(...args) + muter.endString
+            args, color, format, endString,
+            boundOriginal: muter.boundOriginal
           });
         }},
 
@@ -78,7 +87,7 @@ class AdvancedMuter {
             } else {
               if (muting !== muter.isMuting) {
                 throw new Error(
-`Muters referenced by advanced Muter have inconsistent muting state`);
+`Muters referenced by advanced Muter have inconsistent muting states`);
               }
             }
           });
@@ -94,7 +103,7 @@ class AdvancedMuter {
             } else {
               if (muting !== muter.isCapturing) {
                 throw new Error(
-`Muters referenced by advanced Muter have inconsistent capturing state`);
+`Muters referenced by advanced Muter have inconsistent capturing states`);
               }
             }
           });
@@ -110,7 +119,7 @@ class AdvancedMuter {
             } else {
               if (muting !== muter.isActivated) {
                 throw new Error(
-`Muters referenced by advanced Muter have inconsistent activated state`);
+`Muters referenced by advanced Muter have inconsistent activated states`);
               }
             }
           });
@@ -140,7 +149,9 @@ class AdvancedMuter {
 
       this[_muters].set(this[_key](logger[0], logger[1]), muter);
       this[_options].set(this[_key](logger[0], logger[1]), {
-        color: options.color
+        color: options.color,
+        format: options.format,
+        endString: options.endString
       });
     });
 
@@ -176,21 +187,24 @@ class AdvancedMuter {
     this[_stopListening]();
   }
 
-  getLogs(color) {
+  getLogs(options = {}) {
     if (this.isActivated) {
       return this[_logs].map(log => {
-        let _color = color ? color : log.color;
-        return _color ? chalk[_color](log.message) : log.message;
+        let _color = options.color ? options.color : log.color;
+        let format = options.format ? options.format : log.format;
+        let endString = options.endString ? options.endString : log.endString;
+        let message = format(...log.args) + endString;
+        return _color ? chalk[_color](message) : message;
       }).join('');
     }
   }
 
-  flush(color) {
+  flush(options = {}) {
     if (!this.isActivated) {
       return;
     }
 
-    const logs = this.getLogs(color);
+    const logs = this.getLogs(options);
 
     this[_logs].forEach(log => {
       log.boundOriginal(...log.args);

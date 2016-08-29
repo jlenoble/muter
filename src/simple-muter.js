@@ -196,30 +196,42 @@ class SimpleMuter extends EventEmitter {
     }
   }
 
-  getLogs(color) {
+  getLogs(options = {}) {
     if (this.isActivated) {
-      var calls = this.logger[this.method].getCalls();
-
-      calls = calls.map(call => {
-        return this.format(...call.args) + this.endString;
-      });
-
-      calls = calls.join('');
+      var color = options.color;
+      var format = options.format;
+      var endString = options.endString;
 
       if (!color && this.color) {
         color = this.color;
       }
 
+      if (!format) {
+        format = this.format;
+      }
+
+      if (!endString) {
+        endString = this.endString;
+      }
+
+      var calls = this.logger[this.method].getCalls();
+
+      calls = calls.map(call => {
+        return format(...call.args) + endString;
+      });
+
+      calls = calls.join('');
+
       return color ? chalk[color](calls) : calls;
     }
   }
 
-  flush(color) {
+  flush(options = {}) {
     if (!this.isActivated) {
       return;
     }
 
-    const logs = this.getLogs(color);
+    const logs = this.getLogs(options);
 
     var calls = this.logger[this.method].getCalls();
     calls.forEach(call => {
