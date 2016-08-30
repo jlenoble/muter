@@ -133,7 +133,7 @@ class SimpleMuter extends EventEmitter {
 
   mute() {
     if (this.isActivated) {
-      throw new Error(`Muter is already activated, don't call 'mute'`);
+      return;
     }
 
     this.isMuting = true;
@@ -145,7 +145,7 @@ class SimpleMuter extends EventEmitter {
 
   capture() {
     if (this.isActivated) {
-      throw new Error(`Muter is already activated, don't call 'capture'`);
+      return;
     }
 
     this.isCapturing = true;

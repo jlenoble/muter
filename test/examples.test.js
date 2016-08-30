@@ -172,8 +172,7 @@ describe(`Testing README.md examples:`, function() {
 
     log1.mute(); // log1 starts muting console.log
     expect(log2.isMuting).to.be.true;
-    expect(log2.mute.bind(log2)).to.throw(Error,
-      `Muter is already activated, don't call 'mute'`);
+    expect(log2.mute.bind(log2)).not.to.throw();
 
     console.log('Lorem'); // console.log prints nothing
     console.log('ipsum'); // console.log prints nothing
@@ -184,6 +183,7 @@ describe(`Testing README.md examples:`, function() {
       chalk.red('ipsum\n'));
 
     log1.unmute(); // log1 stops muting console.log
+    expect(log2.isMuting).to.be.false;
     expect(log2.unmute.bind(log2)).not.to.throw();
   }));
 
@@ -208,12 +208,17 @@ describe(`Testing README.md examples:`, function() {
     expect(muter1.getLogs()).to.equal('Lorem ipsum\ndolor\n');
     expect(muter2.getLogs.bind(muter2)).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent activated states`);
-    expect(muter2.mute.bind(muter2)).to.throw(Error,
-      `Muter is already activated, don't call 'mute'`);
 
-    Muter(console, 'error').mute(); // Retrieves Muter singleton and mutes console.error, putting muter2 in a consistent state
-
-    expect(muter2.getLogs()).to.equal('dolor\n');
+    expect(muter2.mute.bind(muter2)).not.to.throw();
+    expect(muter2.getLogs()).to.equal('');
+    expect(muter2.getLogs({
+      logger: console,
+      method: 'warn'
+    })).to.equal('');
+    expect(muter1.getLogs({
+      logger: console,
+      method: 'warn'
+    })).to.equal('dolor\n');
 
     muter1.unmute(); // Unmutes console.log and console.warn, leaving muter2 in an inconsistent state
     muter2.unmute(); // Fine, re-unmutes console.warn and unmutes console.error, putting back muter2 in a consistent state

@@ -7,11 +7,13 @@ describe(`Testing Muter concurrency:`, function() {
 
   before(presetLoggers);
 
-  it(`Can't mute console.log twice`, unmutedCallback(function() {
+  it(`Muting console.log twice has no effect`, unmutedCallback(function() {
     this.log.mute();
 
-    expect(this.log.mute.bind(this.log)).to.throw(Error,
-      `Muter is already activated, don't call 'mute'`);
+    const log = console.log;
+
+    expect(this.log.mute.bind(this.log)).not.to.throw();
+    expect(console.log).to.equal(log);
     expect(this.log.capture.bind(this.log)).to.throw(Error,
       `Muter is already activated, don't call 'capture'`);
   }));

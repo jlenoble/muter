@@ -250,15 +250,21 @@ describe('Testing interleaved Muters:', function() {
     expect(muter.isActivated).to.be.false;
   }));
 
-  it('Muting twice an advanced Muter throws', unmutedCallback(function() {
+  it('Muting twice an advanced Muter has no effect',
+  unmutedCallback(function() {
     const muter = Muter(
       [console, 'log'],
       [console, 'error']
     );
 
     muter.mute();
-    expect(muter.mute.bind(muter)).to.throw(Error,
-      `Muter is already activated, don't call 'mute'`);
+
+    const log = console.log;
+    const error = console.error;
+
+    expect(muter.mute.bind(muter)).not.to.throw();
+    expect(console.log).to.equal(log);
+    expect(console.error).to.equal(error);
   }));
 
   it('Unmuting twice an advanced Muter is Ok', unmutedCallback(function() {

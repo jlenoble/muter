@@ -9,7 +9,8 @@ const _key = Symbol();
 const _loggerKeys = Symbol();
 const _loggerKeyCounter = Symbol();
 
-const _logs = Symbol();
+const _fullLogs = Symbol();
+const _individualLogs = Symbol();
 const _listener = Symbol();
 
 const _startListening = Symbol();
@@ -48,10 +49,12 @@ class AdvancedMuter {
       [_loggerKeys]: {value: new Map()},
       [_loggerKeyCounter]: {value: 0, writable: true},
 
-      [_logs]: {value: []},
+      [_fullLogs]: {value: []},
+      [_individualLogs]: {value: new Map()},
       [_listener]: {value: (args, muter) => {
           const key = this[_key](muter.logger, muter.method);
           const options = this[_options].get(key);
+          const logs = this[_individualLogs].get(key);
 
           var color = options.color;
           var format = options.format;
@@ -69,10 +72,14 @@ class AdvancedMuter {
             endString = muter.endString;
           }
 
-          this[_logs].push({
+          const log = {
             args, color, format, endString,
             boundOriginal: muter.boundOriginal
-          });
+          };
+
+          logs.push(log);
+
+          this[_fullLogs].push(log);
         }},
 
       [_startListening]: {value: startListening},
@@ -132,7 +139,9 @@ class AdvancedMuter {
     Object.defineProperties(this, properties);
 
     loggers.forEach(logger => {
-      var muter = this[_muters].get(this[_key](logger[0], logger[1]));
+      const key = this[_key](logger[0], logger[1]);
+
+      var muter = this[_muters].get(key);
 
       if (muter) {
         throw new Error(`Interleaving same logger twice`);
@@ -147,12 +156,13 @@ class AdvancedMuter {
         options = {};
       }
 
-      this[_muters].set(this[_key](logger[0], logger[1]), muter);
-      this[_options].set(this[_key](logger[0], logger[1]), {
+      this[_muters].set(key, muter);
+      this[_options].set(key, {
         color: options.color,
         format: options.format,
         endString: options.endString
       });
+      this[_individualLogs].set(key, []);
     });
 
   }
@@ -174,22 +184,37 @@ class AdvancedMuter {
   unmute() {
     this[_muters].forEach(muter => {
       muter.unmute();
+
+      const key = this[_key](muter.logger, muter.method);
+      this[_individualLogs].get(key).length = 0;
     });
-    this[_logs].length = 0;
+    this[_fullLogs].length = 0;
     this[_stopListening]();
   }
 
   uncapture() {
     this[_muters].forEach(muter => {
       muter.uncapture();
+
+      const key = this[_key](muter.logger, muter.method);
+      this[_individualLogs].get(key).length = 0;
     });
-    this[_logs].length = 0;
+    this[_fullLogs].length = 0;
     this[_stopListening]();
   }
 
   getLogs(options = {}) {
     if (this.isActivated) {
-      return this[_logs].map(log => {
+      var logs;
+
+      if (options.logger && options.method) {
+        logs = this[_individualLogs].get(this[_key](options.logger,
+          options.method));
+      } else {
+        logs = this[_fullLogs];
+      }
+
+      return logs.map(log => {
         let _color = options.color ? options.color : log.color;
         let format = options.format ? options.format : log.format;
         let endString = options.endString ? options.endString : log.endString;
@@ -206,13 +231,16 @@ class AdvancedMuter {
 
     const logs = this.getLogs(options);
 
-    this[_logs].forEach(log => {
+    this[_fullLogs].forEach(log => {
       log.boundOriginal(...log.args);
     });
 
-    this[_logs].length = 0;
+    this[_fullLogs].length = 0;
     this[_muters].forEach(muter => {
       muter.forget();
+
+      const key = this[_key](muter.logger, muter.method);
+      this[_individualLogs].get(key).length = 0;
     });
 
     return logs;
@@ -223,10 +251,13 @@ class AdvancedMuter {
       return;
     }
 
-    const logs = this.getLogs(color);
-    this[_logs].length = 0;
+    const logs = this.getLogs();
+    this[_fullLogs].length = 0;
     this[_muters].forEach(muter => {
       muter.forget();
+
+      const key = this[_key](muter.logger, muter.method);
+      this[_individualLogs].get(key).length = 0;
     });
 
     return logs;
