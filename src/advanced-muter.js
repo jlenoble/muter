@@ -1,6 +1,7 @@
 import SimpleMuter from './simple-muter';
 
 import chalk from 'chalk';
+import upperCamelCase from 'uppercamelcase';
 
 const _muters = Symbol();
 const _options = Symbol();
@@ -13,20 +14,50 @@ const _fullLogs = Symbol();
 const _individualLogs = Symbol();
 const _listener = Symbol();
 
+const _isListening = Symbol();
 const _startListening = Symbol();
 const _stopListening = Symbol();
 
 function startListening() {
+  if (this.isListening) { // Prevents from attaching same listener multiple times
+    return;
+  }
   this[_muters].forEach(muter => {
     muter.on('log', this[_listener]);
   });
+  this.isListening = true;
 }
 
 function stopListening() {
+  if (!this.isListening) {
+    return;
+  }
   this[_muters].forEach(muter => {
     muter.removeListener('log', this[_listener]);
   });
+  this.isListening = false;
 }
+
+function makeGetter(name) {
+  return function() {
+    if (!this.isListening) {
+      return false;
+    }
+    const isName = 'is' + upperCamelCase(name);
+    var muting;
+    [...this[_muters].values()].forEach(muter => {
+      if (muting === undefined) {
+        muting = muter[isName];
+      } else {
+        if (muting !== muter[isName]) {
+          throw new Error(
+  `Muters referenced by advanced Muter have inconsistent ${name} states`);
+        }
+      }
+    });
+    return muting;
+  };
+};
 
 class AdvancedMuter {
 
@@ -85,53 +116,24 @@ class AdvancedMuter {
       [_startListening]: {value: startListening},
       [_stopListening]: {value: stopListening},
 
-      isMuting: {
+      [_isListening]: {value: false, writable: true},
+      isListening: {
         get() {
-          var muting;
-          [...this[_muters].values()].forEach(muter => {
-            if (muting === undefined) {
-              muting = muter.isMuting;
-            } else {
-              if (muting !== muter.isMuting) {
-                throw new Error(
-`Muters referenced by advanced Muter have inconsistent muting states`);
-              }
-            }
-          });
-          return muting;
+          return this[_isListening];
+        },
+        set(bool) {
+          this[_isListening] = !!bool;
         }
+      },
+
+      isMuting: {
+        get: makeGetter('muting')
       },
       isCapturing: {
-        get() {
-          var muting;
-          [...this[_muters].values()].forEach(muter => {
-            if (muting === undefined) {
-              muting = muter.isCapturing;
-            } else {
-              if (muting !== muter.isCapturing) {
-                throw new Error(
-`Muters referenced by advanced Muter have inconsistent capturing states`);
-              }
-            }
-          });
-          return muting;
-        }
+        get: makeGetter('capturing')
       },
       isActivated: {
-        get() {
-          var muting;
-          [...this[_muters].values()].forEach(muter => {
-            if (muting === undefined) {
-              muting = muter.isActivated;
-            } else {
-              if (muting !== muter.isActivated) {
-                throw new Error(
-`Muters referenced by advanced Muter have inconsistent activated states`);
-              }
-            }
-          });
-          return muting;
-        }
+        get: makeGetter('activated')
       }
 
     };
@@ -147,9 +149,7 @@ class AdvancedMuter {
         throw new Error(`Interleaving same logger twice`);
       }
 
-      muter = new SimpleMuter(
-        logger[0], logger[1], logger[2]
-      );
+      muter = new SimpleMuter(logger[0], logger[1]);
 
       var options = logger[2];
       if (!options) {
@@ -168,6 +168,9 @@ class AdvancedMuter {
   }
 
   mute() {
+    if (this.isListening) {
+      return;
+    }
     this[_muters].forEach(muter => {
       muter.mute();
     });
@@ -175,6 +178,9 @@ class AdvancedMuter {
   }
 
   capture() {
+    if (this.isListening) {
+      return;
+    }
     this[_muters].forEach(muter => {
       muter.capture();
     });
@@ -182,8 +188,13 @@ class AdvancedMuter {
   }
 
   unmute() {
+    if (!this.isListening) {
+      return;
+    }
     this[_muters].forEach(muter => {
-      muter.unmute();
+      if (muter.listenerCount('log') <= 1) {
+        muter.unmute();
+      }
 
       const key = this[_key](muter.logger, muter.method);
       this[_individualLogs].get(key).length = 0;
@@ -193,14 +204,33 @@ class AdvancedMuter {
   }
 
   uncapture() {
+    if (!this.isListening) {
+      return;
+    }
     this[_muters].forEach(muter => {
-      muter.uncapture();
+      if (muter.listenerCount('log') <= 1) {
+        muter.uncapture();
+      }
 
       const key = this[_key](muter.logger, muter.method);
       this[_individualLogs].get(key).length = 0;
     });
     this[_fullLogs].length = 0;
     this[_stopListening]();
+  }
+
+  repair(options = {mute: true}) {
+    var mute = options.mute ? 'mute' : 'capture';
+    var unmute = 'un' + mute;
+    if (this.isListening) {
+      this[_muters].forEach(muter => {
+        muter[mute]();
+      });
+    } else {
+      this[_muters].forEach(muter => {
+        muter[unmute]();
+      });
+    }
   }
 
   getLogs(options = {}) {

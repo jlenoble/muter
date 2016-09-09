@@ -14,8 +14,6 @@ describe(`Testing Muter concurrency:`, function() {
 
     expect(this.log.mute.bind(this.log)).not.to.throw();
     expect(console.log).to.equal(log);
-    expect(this.log.capture.bind(this.log)).to.throw(Error,
-      `Muter is already activated, don't call 'capture'`);
   }));
 
   it(`Can unmute console.log multiple times`, unmutedCallback(function() {

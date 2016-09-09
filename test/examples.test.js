@@ -34,13 +34,13 @@ describe(`Testing README.md examples:`, function() {
   }));
 
   it(`README.md Using options examples work fine`, unmutedCallback(function() {
-    var muter = Muter([console, 'log', {
+    var muter = Muter(console, 'log', {
       color: 'magenta',
       format: (...args) => {
         return args.join(' • ');
       },
       endString: ' ▪▪▪'
-    }]); // Sets a Muter on console.log with special formatting options
+    }); // Sets a Muter on console.log with special formatting options
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem', 'ipsum'); // console.log prints nothing
@@ -51,23 +51,7 @@ describe(`Testing README.md examples:`, function() {
 
     muter.capture(); // The Muter starts capturing console.log
 
-    console.log('Lorem', 'ipsum'); // console.log prints as usual with no special formatting
-    expect(muter.getLogs()).to.equal(chalk.magenta('Lorem • ipsum ▪▪▪'));
-
-    muter.uncapture(); // The Muter stops capturing console.log
-    expect(muter.getLogs()).to.be.undefined;
-
-    muter = Muter([console, 'log', {
-      color: 'magenta',
-      format: (...args) => {
-        return args.join(' • ');
-      },
-      endString: ' ▪▪▪',
-      alter: true
-    }]); // Sets a Muter on console.log with special formatting options
-    muter.capture(); // The Muter starts capturing console.log
-
-    console.log('Lorem', 'ipsum'); // console.log is altered to print 'Lorem • ipsum ▪▪▪' in magenta
+    console.log('Lorem', 'ipsum'); // console.log prints as usual with no special formatting, that is 'Lorem ipsum \n'
     expect(muter.getLogs()).to.equal(chalk.magenta('Lorem • ipsum ▪▪▪'));
 
     muter.uncapture(); // The Muter stops capturing console.log
@@ -76,13 +60,13 @@ describe(`Testing README.md examples:`, function() {
 
   it(`README.md Overriding options example works fine`,
   unmutedCallback(function() {
-    const muter = Muter([console, 'log', {
+    const muter = Muter(console, 'log', {
       color: 'magenta',
       format: (...args) => {
         return args.join(' • ');
       },
       endString: ' ▪▪▪'
-    }]); // Sets a Muter on console.log with special formatting options
+    }); // Sets a Muter on console.log with special formatting options
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem', 'ipsum'); // console.log prints nothing
@@ -163,28 +147,60 @@ describe(`Testing README.md examples:`, function() {
   }));
 
   it(`README.md Related Muters example works fine`, unmutedCallback(function() {
-    const log1 = Muter([console, 'log', {
+    const log1 = Muter(console, 'log', {
       color: 'blue'
-    }]); // Sets a Muter on console.log
-    const log2 = Muter([console, 'log', {
+    }); // Sets a Muter on console.log; log1 is wrapper around the actual Muter
+    const log2 = Muter(console, 'log', {
       color: 'red'
-    }]); // Associates different options to the same Muter
+    }); // Associates another wrapper with different options to the same Muter
+    const log = Muter(console, 'log'); // The actual Muter, with no special options
 
     log1.mute(); // log1 starts muting console.log
-    expect(log2.isMuting).to.be.true;
-    expect(log2.mute.bind(log2)).not.to.throw();
+    expect(log.isMuting).to.be.true;
+    expect(log1.isMuting).to.be.true;
+    expect(log2.isMuting).to.be.false;
 
     console.log('Lorem'); // console.log prints nothing
     console.log('ipsum'); // console.log prints nothing
 
+    expect(log.getLogs()).to.equal('Lorem\nipsum\n');
     expect(log1.getLogs()).to.equal(chalk.blue('Lorem\n') +
       chalk.blue('ipsum\n'));
-    expect(log2.getLogs()).to.equal(chalk.red('Lorem\n') +
-      chalk.red('ipsum\n'));
+    expect(log2.getLogs()).to.be.undefined;
 
-    log1.unmute(); // log1 stops muting console.log
+    log2.mute(); // log2 starts muting too
+    expect(log.isMuting).to.be.true;
+    expect(log1.isMuting).to.be.true;
+    expect(log2.isMuting).to.be.true;
+
+    console.log('dolor'); // console.log prints nothing
+
+    expect(log.getLogs()).to.equal('Lorem\nipsum\ndolor\n');
+    expect(log1.getLogs()).to.equal(chalk.blue('Lorem\n') +
+      chalk.blue('ipsum\n') + chalk.blue('dolor\n'));
+    expect(log2.getLogs()).to.equal(chalk.red('dolor\n'));
+
+    log1.unmute(); // log1 stops muting console.log, but log2 still is
+    expect(log.isMuting).to.be.true;
+    expect(log1.isMuting).to.be.false;
+    expect(log2.isMuting).to.be.true;
+
+    console.log('sit'); // console.log prints nothing
+
+    expect(log.getLogs()).to.equal('Lorem\nipsum\ndolor\nsit\n');
+    expect(log1.getLogs()).to.be.undefined;
+    expect(log2.getLogs()).to.equal(chalk.red('dolor\n') + chalk.red('sit\n'));
+
+    log2.unmute(); // log2 stops muting console.log, which is fully unmuted
+    expect(log.isMuting).to.be.false;
+    expect(log1.isMuting).to.be.false;
     expect(log2.isMuting).to.be.false;
-    expect(log2.unmute.bind(log2)).not.to.throw();
+
+    console.log('amet'); // console.log prints 'amet'
+
+    expect(log.getLogs()).to.be.undefined;
+    expect(log1.getLogs()).to.be.undefined;
+    expect(log2.getLogs()).to.be.undefined;
   }));
 
   it(`README.md Overlapping Muters example works fine`,
@@ -206,8 +222,7 @@ describe(`Testing README.md examples:`, function() {
     console.error('sit amet'); // console.error prints as expected
 
     expect(muter1.getLogs()).to.equal('Lorem ipsum\ndolor\n');
-    expect(muter2.getLogs.bind(muter2)).to.throw(Error,
-      `Muters referenced by advanced Muter have inconsistent activated states`);
+    expect(muter2.getLogs()).to.be.undefined;
 
     expect(muter2.mute.bind(muter2)).not.to.throw();
     expect(muter2.getLogs()).to.equal('');
@@ -220,8 +235,8 @@ describe(`Testing README.md examples:`, function() {
       method: 'warn'
     })).to.equal('dolor\n');
 
-    muter1.unmute(); // Unmutes console.log and console.warn, leaving muter2 in an inconsistent state
-    muter2.unmute(); // Fine, re-unmutes console.warn and unmutes console.error, putting back muter2 in a consistent state
+    muter1.unmute(); // Unmutes console.log but not console.warn (still muted by muter2), now being in an inconsistent state
+    muter2.unmute(); // Unmutes console.warn and console.error, putting back muter1 in a consistent state
   }));
 
   it(`README.md Coordinated muting/capturing example works fine`,
@@ -259,37 +274,52 @@ describe(`Testing README.md examples:`, function() {
 
   it(`README.md Printing example works fine`, unmutedCallback(function() {
     const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    this.stdout.capture();
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem ipsum'); // console.log prints nothing
 
     muter.print(); // Prints 'Lorem ipsum\n'
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n');
 
     console.log('dolor sit amet'); // console.log prints nothing
 
     muter.print(); // Prints 'Lorem ipsum\ndolor sit amet\n'
-    throw new Error('Bad printing');
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n' +
+      'Lorem ipsum\ndolor sit amet\n');
+
     muter.print(0); // Prints 'Lorem ipsum\n'
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n' +
+      'Lorem ipsum\ndolor sit amet\nLorem ipsum\n');
+
     muter.print(1); // Prints 'dolor sit amet\n'
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n' +
+      'Lorem ipsum\ndolor sit amet\nLorem ipsum\ndolor sit amet\n');
 
     muter.unmute(); // The Muter stops muting console.log
+    this.stdout.uncapture();
   }));
 
   it(`README.md Flushing example works fine`, unmutedCallback(function() {
     const muter = Muter(console, 'log'); // Sets a Muter on console.log
     muter.mute(); // The Muter starts muting console.log
+    this.stdout.capture();
 
     console.log('Lorem ipsum'); // console.log prints nothing
-    throw new Error('Use process.stdout to capture printing');
     muter.flush(); // Prints 'Lorem ipsum\n'
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n');
     muter.flush(); // Prints nothing
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\n');
 
     console.log('dolor sit amet'); // console.log prints nothing
 
     muter.flush(); // Prints 'dolor sit amet\n'
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\ndolor sit amet\n');
     muter.flush(); // Prints nothing
+    expect(this.stdout.getLogs()).to.equal('Lorem ipsum\ndolor sit amet\n');
 
     muter.unmute(); // The Muter stops muting console.log
+    this.stdout.uncapture();
   }));
 
   it(`README.md Forgetting example works fine`, unmutedCallback(function() {

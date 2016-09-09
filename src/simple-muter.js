@@ -54,7 +54,7 @@ const _unmute = Symbol();
 
 class SimpleMuter extends EventEmitter {
 
-  constructor(logger, method, options = {}) {
+  constructor(logger, method) {
 
     super();
 
@@ -73,11 +73,8 @@ class SimpleMuter extends EventEmitter {
       original: {value: logger[method]},
       boundOriginal: {value: logger[method].bind(logger)},
 
-      format: {value: options.format ? options.format :
-        formatter(logger, method)},
-      endString: {value: options.endString ? options.endString :
-        endString(logger, method)},
-      color: {value: options.color ? options.color : undefined},
+      format: {value: formatter(logger, method)},
+      endString: {value: endString(logger, method)},
 
       [_unmute]: {value: unmuter(logger, method)},
 
@@ -168,7 +165,7 @@ class SimpleMuter extends EventEmitter {
 
   print(nth) {
     if (this.isActivated) {
-      if (nth) {
+      if (nth >= 0) {
         var call = this.logger[this.method].getCalls()[nth];
 
         this.boundOriginal(...call.args);
@@ -201,10 +198,6 @@ class SimpleMuter extends EventEmitter {
       var color = options.color;
       var format = options.format;
       var endString = options.endString;
-
-      if (!color && this.color) {
-        color = this.color;
-      }
 
       if (!format) {
         format = this.format;
