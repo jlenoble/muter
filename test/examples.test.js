@@ -1,4 +1,4 @@
-import Muter from '../src/muter';
+import Muter, {muted, captured} from '../src/muter';
 import {presetLoggers, unmutedCallback} from './helpers.help';
 
 import {expect} from 'chai';
@@ -339,6 +339,42 @@ describe(`Testing README.md examples:`, function() {
     expect(muter.getLogs()).to.equal('');
 
     muter.unmute(); // The Muter stops muting console.log
+  }));
+
+  it(`README.md 'muted' and 'captured' Convenience wrappers example works fine`,
+    unmutedCallback(function() {
+    const muter = Muter(console);
+
+    const func = function(...args) {
+      console.log(args[0].toString());
+      console.error(args[1].toString());
+      console.info(args[2].toString());
+      return muter.getLogs();
+    };
+
+    const safelyMutedFunc = muted(muter, func);
+    const safelyCapturedFunc = captured(muter, func);
+
+    const res1 = safelyMutedFunc('lorem', 'ipsum', 'dolor', 'sit', 'amet'); // Prints nothing: muter is muting
+    const res2 = safelyCapturedFunc('lorem', 'ipsum', 'dolor', 'sit', 'amet'); // Prints 'lorem\nipsum\ndolor\n';
+
+    expect(res1).to.equal(res2);
+    expect(res2).to.equal('lorem\nipsum\ndolor\n'); // muter was capturing
+    expect(res2).not.to.equal(muter.getLogs()); // muter is no longer muting nor capturing
+
+    try {
+      safelyMutedFunc('lorem'); // Prints nothing, throws error
+    } catch(e) {
+      expect(e).to.match(/TypeError: Cannot read property 'toString' of undefined/);
+      expect(muter.getLogs()).to.be.undefined;
+    }
+
+    try {
+      safelyCapturedFunc('lorem'); // Prints 'lorem', throws error
+    } catch(e) {
+      expect(e).to.match(/TypeError: Cannot read property 'toString' of undefined/);
+      expect(muter.getLogs()).to.be.undefined;
+    }
   }));
 
   it(`README.md Format strings example works fine`, unmutedCallback(function() {

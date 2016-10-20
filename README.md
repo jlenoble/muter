@@ -20,12 +20,17 @@ A node package to mute and/or capture console or other loggers' logs.
   * [Printing](#printing)
   * [Flushing](#flushing)
   * [Forgetting](#forgetting)
+* [CAVEAT](#caveat)
+  * [Side-effects](#side-effects)
+  * ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers)
 * [Miscellaneous](#miscellaneous)
   * [Format strings](#format-strings)
   * [Handling hidden logging methods](#handling-hidden-logging-methods)
     * [gulp-util logger](#gulp-util-logger)
   * [Special arguments](#special-arguments)
 * [Full API](#full-api)
+  * [Muter methods](#muter-methods)
+  * [Utilities](#utilities)
 * [License](#license)
 
 ## Basic usage
@@ -451,6 +456,53 @@ logs = muter.getLogs(); // Returns ''
 muter.unmute(); // The Muter stops muting console.log
 ```
 
+## CAVEAT
+
+### Side-effects
+
+Muting or capturing logs can have unwanted repercutions throughout your running process as, most of the time, standard logging functions such as ```console.log``` or ```process.stdout.write``` are temporarily overridden.
+
+If you forget to unmute your Muter whenever you don't need it anymore, or if you encounter an exception from which your process recovers without unmuting, you will most likely get plagued with random incomplete logging messages.
+
+### 'muted' and 'captured' convenience wrappers
+
+In order to mitigate those side-effects, two function wrappers are provided that will take care of cleaning up as soon as you're done with muting or if an unhandled exception is thrown: ```muted``` and ```captured```.
+
+```js
+import Muter, {muted, captured} from 'muter';
+
+const muter = Muter(console);
+
+const func = function(...args) {
+  console.log(args[0]);
+  console.error(args[1]);
+  console.info(args[2]);
+  return muter.getLogs();
+};
+
+const safelyMutedFunc = muted(muter, func);
+const safelyCapturedFunc = captured(muter, func);
+
+const res1 = safelyMutedFunc('lorem', 'ipsum', 'dolor', 'sit', 'amet'); // Prints nothing: muter is muting
+const res2 = safelyCapturedFunc('lorem', 'ipsum', 'dolor', 'sit', 'amet'); // Prints 'lorem\nipsum\ndolor\n';
+
+res1 === res2; // true
+res2 === 'lorem\nipsum\ndolor\n'; // true: muter was capturing
+res2 === muter.getLogs(); // false: muter is no longer muting nor capturing
+
+try {
+  safelyMutedFunc('lorem'); // Prints nothing, throws error
+} catch(e) {
+  console.log(e); // Prints error as expected
+}
+
+try {
+  safelyCapturedFunc('lorem'); // Prints 'lorem', throws error
+} catch(e) {
+  console.log(e); // Prints error as expected
+}
+```
+
 ## Miscellaneous
 
 ### Format strings
@@ -524,6 +576,8 @@ const muter4 = Muter(gulp); // Same as Muter(gutil)
 
 ## Full API
 
+### Muter methods
+
 * ```Muter(logger, methodName [, options])```: Muter is the default import of the 'muter' module. With no options, this construct returns a singleton associated with the pair (logger, methodName), able to mute/unmute it at will (see [Basic muting](#basic-muting)). Options are explained in [Using options](#using-options).
 When options are set, the method returns a wrapper around the above singleton.
 * ```Muter(Array(logger1, methodName1 [, options1]), Array(logger2, methodName2 [, options2])[, ...])```: This construct improves on the previous one, allowing to set coordinated Muters on several pairs (logger, methodName) (see [Coordinated muting/capturing](#coordinated-mutingcapturing)).
@@ -535,6 +589,11 @@ When options are set, the method returns a wrapper around the above singleton.
 * ```getLogs([options])```: Returns the whole logging history since last muting/capturing/flushing. options override those set on the pair (logger, methodName) on creation (see [Overriding options](#overriding-options)).
 * ```flush([options])```: Like 'getLogs([options])', returns the whole logging history, but also both prints it and resets it, see [Flushing](#flushing).
 * ```forget()```: Returns and resets the logging history, but don't print it, see [Forgetting](#forgetting).
+
+### Utilities
+
+* ```muted(muter, func)```: Returns a wrapper around function ```func``` that'll first mute the logging methods handled by ```muter```, then run ```func``` (that supposedly calls the aforementioned logging methods during its run) and finally unmute the logging methods, either upon returning or upon catching an exception. See ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers) for an example.
+* ```captured(muter, func)```: Returns a wrapper around function ```func``` that'll first capture the logging methods handled by ```muter```, then run ```func``` (that supposedly calls the aforementioned logging methods during its run) and finally unmute the logging methods, either upon returning or upon catching an exception. See ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers) for an example.
 
 ## License
 

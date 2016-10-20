@@ -3,7 +3,7 @@ import AdvancedMuter from './advanced-muter';
 import gulp from 'gulp';
 import gutil from 'gulp-util';
 
-function Muter(logger, method, options = {}) {
+export default function Muter(logger, method, options = {}) {
 
   if (logger === process || logger === undefined) {
     return Muter(
@@ -34,4 +34,33 @@ function Muter(logger, method, options = {}) {
 
 }
 
-export default Muter;
+export function muted(muter, func) {
+  return function(...args) {
+    muter.mute();
+    try {
+      const ret = func.apply(this, args);
+      muter.unmute();
+      return ret;
+    } catch (e) {
+      muter.unmute();
+      throw e;
+    }
+  };
+};
+
+export function captured(muter, func) {
+  return function(...args) {
+    muter.capture();
+    try {
+      const ret = func.apply(this, args);
+      muter.uncapture();
+      return ret;
+    } catch (e) {
+      muter.uncapture();
+      throw e;
+    }
+  };
+};
+
+Muter.muted = muted;
+Muter.captured = captured;
