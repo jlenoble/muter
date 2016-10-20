@@ -474,9 +474,9 @@ import Muter, {muted, captured} from 'muter';
 const muter = Muter(console);
 
 const func = function(...args) {
-  console.log(args[0]);
-  console.error(args[1]);
-  console.info(args[2]);
+  console.log(args[0].toString());
+  console.error(args[1].toString());
+  console.info(args[2].toString());
   return muter.getLogs();
 };
 
