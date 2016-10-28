@@ -38,8 +38,18 @@ export function muted(muter, func) {
   return function(...args) {
     muter.mute();
     try {
-      const ret = func.apply(this, args);
-      muter.unmute();
+      let ret = func.apply(this, args);
+      if (ret instanceof Promise) {
+        ret = ret.then(res => {
+          muter.unmute();
+          return res;
+        }, err => {
+          muter.unmute();
+          throw err;
+        });
+      } else {
+        muter.unmute();
+      }
       return ret;
     } catch (e) {
       muter.unmute();
@@ -52,8 +62,18 @@ export function captured(muter, func) {
   return function(...args) {
     muter.capture();
     try {
-      const ret = func.apply(this, args);
-      muter.uncapture();
+      let ret = func.apply(this, args);
+      if (ret instanceof Promise) {
+        ret = ret.then(res => {
+          muter.uncapture();
+          return res;
+        }, err => {
+          muter.uncapture();
+          throw err;
+        });
+      } else {
+        muter.uncapture();
+      }
       return ret;
     } catch (e) {
       muter.uncapture();
