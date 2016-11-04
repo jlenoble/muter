@@ -2,6 +2,7 @@ import SimpleMuter from './simple-muter';
 import AdvancedMuter from './advanced-muter';
 import gulp from 'gulp';
 import gutil from 'gulp-util';
+import cleanupWrapper from 'cleanup-wrapper';
 
 export default function Muter(logger, method, options = {}) {
 
@@ -35,51 +36,27 @@ export default function Muter(logger, method, options = {}) {
 }
 
 export function muted(muter, func) {
-  return function(...args) {
-    muter.mute();
-    try {
-      let ret = func.apply(this, args);
-      if (ret instanceof Promise) {
-        ret = ret.then(res => {
-          muter.unmute();
-          return res;
-        }, err => {
-          muter.unmute();
-          throw err;
-        });
-      } else {
-        muter.unmute();
-      }
-      return ret;
-    } catch (e) {
-      muter.unmute();
-      throw e;
+  return cleanupWrapper(func, {
+    muter,
+    before() {
+      this.muter.mute();
+    },
+    after() {
+      this.muter.unmute();
     }
-  };
+  });
 };
 
 export function captured(muter, func) {
-  return function(...args) {
-    muter.capture();
-    try {
-      let ret = func.apply(this, args);
-      if (ret instanceof Promise) {
-        ret = ret.then(res => {
-          muter.uncapture();
-          return res;
-        }, err => {
-          muter.uncapture();
-          throw err;
-        });
-      } else {
-        muter.uncapture();
-      }
-      return ret;
-    } catch (e) {
-      muter.uncapture();
-      throw e;
+  return cleanupWrapper(func, {
+    muter,
+    before() {
+      this.muter.capture();
+    },
+    after() {
+      this.muter.uncapture();
     }
-  };
+  });
 };
 
 Muter.muted = muted;
