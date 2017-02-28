@@ -565,13 +565,9 @@ As a convenience, you may call the Muter factory with special arguments to have 
 
 ```js
 import Muter from 'muter';
-import gulp from 'gulp';
-import gutil from 'gulp-util';
 
 const muter1 = Muter(process); // Sets Muters on process.stdout.write and process.stderr.write, therefore allowing to silence the whole process
 const muter2 = Muter(console); // Sets Muters on all four logging methods of console
-const muter3 = Muter(gutil); // Sets a Muter on gulp-util logger
-const muter4 = Muter(gulp); // Same as Muter(gutil)
 ```
 
 ## Full API

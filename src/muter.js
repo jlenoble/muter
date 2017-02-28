@@ -1,7 +1,5 @@
 import SimpleMuter from './simple-muter';
 import AdvancedMuter from './advanced-muter';
-import gulp from 'gulp';
-import gutil from 'gulp-util';
 import cleanupWrapper from 'cleanup-wrapper';
 
 export default function Muter(logger, method, options = {}) {
@@ -17,11 +15,6 @@ export default function Muter(logger, method, options = {}) {
       [console, 'info'],
       [console, 'warn'],
       [console, 'error']
-    );
-  } else if (logger === gulp || logger === gutil) {
-    return Muter(
-      [console, 'log'],
-      [process.stdout, 'write']
     );
   } else if (Array.isArray(logger)) {
     var muter = Object.create(AdvancedMuter.prototype);

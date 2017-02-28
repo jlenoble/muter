@@ -432,20 +432,6 @@ describe(`Testing README.md examples:`, function() {
     console.error('sit');
     expect(muter2.getLogs()).to.equal('Lorem\nipsum\ndolor\nsit\n');
     muter2.unmute();
-
-    const muter3 = Muter(gutil); // Sets a Muter on gulp-util logger
-    muter3.mute();
-    gulpLogger('Lorem ipsum');
-    expect(muter3.getLogs()).to.match(/\[.+\d\d:\d\d:\d\d.+\] Lorem ipsum\n/);
-    muter3.unmute();
-    expect(muter3.getLogs()).to.be.undefined;
-
-    const muter4 = Muter(gulp); // Same as Muter(gutil)
-    muter4.mute();
-    gulpLogger('Lorem ipsum');
-    expect(muter4.getLogs()).to.match(/\[.+\d\d:\d\d:\d\d.+\] Lorem ipsum\n/);
-    muter4.unmute();
-    expect(muter3.getLogs()).to.be.undefined;
   }));
 
 });
