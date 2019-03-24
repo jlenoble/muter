@@ -25,7 +25,7 @@ describe(`Testing Muter concurrency:`, function () {
 
   it(`A Muter is a singleton`, unmutedCallback(function () {
     ['log', 'info', 'warn', 'error'].forEach(name => {
-      const muter = Muter(console, name);
+      const muter = new Muter(console, name);
 
       expect(muter).to.equal(this[name]);
     });

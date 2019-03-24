@@ -59,7 +59,7 @@ describe('Testing interleaved Muters:', function () {
 
   it('Advanced Muters can capture their underlying Muters',
     unmutedCallback(function () {
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'log'],
         [console, 'info']
       );
@@ -78,7 +78,7 @@ describe('Testing interleaved Muters:', function () {
   );
 
   it('Advanced Muters can capture fancy-log', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [process.stdout, 'write']
     );
@@ -113,7 +113,7 @@ describe('Testing interleaved Muters:', function () {
 
   it('Advanced Muters share API with simple Muters',
     unmutedCallback(function () {
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'log'],
         [console, 'error']
       );
@@ -132,7 +132,7 @@ describe('Testing interleaved Muters:', function () {
   );
 
   it('Advanced Muters do clean up on unmute', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [console, 'error']
     );
@@ -166,7 +166,7 @@ describe('Testing interleaved Muters:', function () {
   }));
 
   it('Advanced Muters do clean up on uncapture', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [console, 'error']
     );
@@ -207,7 +207,7 @@ describe('Testing interleaved Muters:', function () {
   );
 
   it(`States are the conjunction of every states`, unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [console, 'warn'],
       [console, 'error']
@@ -256,7 +256,7 @@ describe('Testing interleaved Muters:', function () {
 
   it('Muting twice an advanced Muter has no effect',
     unmutedCallback(function () {
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'log'],
         [console, 'error']
       );
@@ -272,7 +272,7 @@ describe('Testing interleaved Muters:', function () {
     }));
 
   it('Unmuting twice an advanced Muter is Ok', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [console, 'error']
     );
@@ -285,7 +285,7 @@ describe('Testing interleaved Muters:', function () {
 
   it('Flushing advanced Muters works like simple Muters',
     unmutedCallback(function () {
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'log'],
         [console, 'info']
       );
@@ -348,7 +348,7 @@ log message 2 (flushed)
   );
 
   it('Advanced Muters can color their output', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'info', {color: 'green'}],
       [console, 'warn', {color: 'yellow'}],
       [console, 'error', {color: 'red'}]

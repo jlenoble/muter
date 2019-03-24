@@ -9,9 +9,9 @@ import {expect} from 'chai';
         [false, true].forEach(async => {
           it(`'${wrapper}' cleans up after running to completion` +
             (async ? ' (async)' : ''), function () {
-            const muter = Muter(console, 'log', type === 'advanced' ?
+            const muter = new Muter(console, 'log', type === 'advanced' ?
               {color: 'green'} : undefined);
-            const log = Muter(console, 'log');
+            const log = new Muter(console, 'log');
 
             function onStart () {
               expect(console.log.restore).not.to.be.undefined;
@@ -35,7 +35,7 @@ import {expect} from 'chai';
             expect(muter.getLogs()).to.be.undefined;
 
             if (async) {
-              const func = Muter[wrapper](muter, function () {
+              const func = new Muter[wrapper](muter, function () {
                 return new Promise((resolve, reject) => {
                   setTimeout(function () {
                     try {
@@ -53,7 +53,7 @@ import {expect} from 'chai';
                 expect(log.listeners('log').length).to.equal(0);
               });
             } else {
-              const func = Muter[wrapper](muter, onStart);
+              const func = new Muter[wrapper](muter, onStart);
               expect(func).not.to.throw();
               expect(muter.getLogs()).to.be.undefined;
               expect(console.log.restore).to.be.undefined;
@@ -63,9 +63,9 @@ import {expect} from 'chai';
 
           it(`'${wrapper}' cleans up after encountering an exception` +
             (async ? ' (async)' : ''), function () {
-            const muter = Muter(console, 'log', type === 'advanced' ?
+            const muter = new Muter(console, 'log', type === 'advanced' ?
               {color: 'red'} : undefined);
-            const log = Muter(console, 'log');
+            const log = new Muter(console, 'log');
 
             function onStart () {
               expect(console.log.restore).not.to.be.undefined;
@@ -91,7 +91,7 @@ import {expect} from 'chai';
             expect(muter.getLogs()).to.be.undefined;
 
             if (async) {
-              const func = Muter[wrapper](muter, function () {
+              const func = new Muter[wrapper](muter, function () {
                 return new Promise((resolve, reject) => {
                   setTimeout(function () {
                     try {
@@ -110,7 +110,7 @@ import {expect} from 'chai';
                 expect(log.listeners('log').length).to.equal(0);
               });
             } else {
-              const func = Muter[wrapper](muter, onStart);
+              const func = new Muter[wrapper](muter, onStart);
               expect(func).to.throw(Error, 'Controlled error');
               expect(muter.getLogs()).to.be.undefined;
               expect(console.log.restore).to.be.undefined;

@@ -65,10 +65,10 @@ function presetLoggers () {
   this.stds = ['stdout', 'stderr'];
 
   this.consoleMethods.forEach(method => {
-    this[method] = Muter(console, method);
+    this[method] = new Muter(console, method);
   });
   this.stds.forEach(std => {
-    this[std] = Muter(process[std], 'write');
+    this[std] = new Muter(process[std], 'write');
   });
 }
 

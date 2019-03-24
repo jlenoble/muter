@@ -8,7 +8,7 @@ describe(`Testing README.md examples:`, function () {
   before(presetLoggers);
 
   it(`README.md Basic muting example works fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    const muter = new Muter(console, 'log'); // Sets a Muter on console.log
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem ipsum'); // console.log prints nothing
@@ -20,7 +20,7 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Basic capturing example works fine`,
     unmutedCallback(function () {
-      const muter = Muter(console, 'log'); // Sets a Muter on console.log
+      const muter = new Muter(console, 'log'); // Sets a Muter on console.log
       muter.capture(); // The Muter starts capturing console.log
 
       console.log('Lorem ipsum'); // console.log prints as usual
@@ -32,7 +32,7 @@ describe(`Testing README.md examples:`, function () {
   );
 
   it(`README.md Using options examples work fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log', {
+    const muter = new Muter(console, 'log', {
       color: 'magenta',
       format: (...args) => {
         return args.join(' • ');
@@ -59,7 +59,7 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Overriding options example works fine`,
     unmutedCallback(function () {
-      const muter = Muter(console, 'log', {
+      const muter = new Muter(console, 'log', {
         color: 'magenta',
         format: (...args) => {
           return args.join(' • ');
@@ -86,7 +86,7 @@ describe(`Testing README.md examples:`, function () {
   );
 
   it(`README.md Clearing example works fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    const muter = new Muter(console, 'log'); // Sets a Muter on console.log
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem ipsum'); // console.log prints nothing
@@ -101,8 +101,8 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Distinct Muters examples work fine`,
     unmutedCallback(function () {
-      const logMuter = Muter(console, 'log'); // Sets a Muter on console.log
-      const errorMuter = Muter(console, 'error'); // Sets a Muter on
+      const logMuter = new Muter(console, 'log'); // Sets a Muter on console.log
+      const errorMuter = new Muter(console, 'error'); // Sets a Muter on
       // console.error
 
       logMuter.mute(); // logMuter starts muting console.log
@@ -122,9 +122,9 @@ describe(`Testing README.md examples:`, function () {
       expect(logMuter.getLogs()).to.be.undefined;
       expect(errorMuter.getLogs()).to.be.undefined;
 
-      const stdoutWrite = Muter(process.stdout, 'write'); // Sets a Muter on
+      const stdoutWrite = new Muter(process.stdout, 'write'); // Sets a Muter on
       // process.stdout.write
-      const stderrWrite = Muter(process.stderr, 'write'); // Sets a Muter on
+      const stderrWrite = new Muter(process.stderr, 'write'); // Sets a Muter on
       // process.stderr.write
 
       expect(process.stdout.write).to.equal(process.stderr.write);
@@ -152,15 +152,15 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Related Muters example works fine`,
     unmutedCallback(function () {
-      const log1 = Muter(console, 'log', {
+      const log1 = new Muter(console, 'log', {
         color: 'blue',
       }); // Sets a Muter on console.log; log1 is a wrapper around the actual
       // Muter
-      const log2 = Muter(console, 'log', {
+      const log2 = new Muter(console, 'log', {
         color: 'red',
       }); // Associates another wrapper with different options to the same Muter
-      const log = Muter(console, 'log'); // The actual Muter, with no special
-      // options
+      const log = new Muter(console, 'log'); // The actual Muter, with no
+      // special options
 
       log1.mute(); // log1 starts muting console.log
       expect(log.isMuting).to.be.true;
@@ -214,12 +214,12 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Overlapping Muters example works fine`,
     unmutedCallback(function () {
-      const muter1 = Muter(
+      const muter1 = new Muter(
         [console, 'log'],
         [console, 'warn']
       ); // Sets a Muter on console.log and console.warn
 
-      const muter2 = Muter(
+      const muter2 = new Muter(
         [console, 'warn'],
         [console, 'error']
       ); // Shares the Muter on console.warn and sets a Muter on console.error
@@ -253,7 +253,7 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Coordinated muting/capturing example works fine`,
     unmutedCallback(function () {
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'log'],
         [console, 'warn'],
         [console, 'error']
@@ -288,7 +288,7 @@ describe(`Testing README.md examples:`, function () {
   );
 
   it(`README.md Printing example works fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    const muter = new Muter(console, 'log'); // Sets a Muter on console.log
     this.stdout.capture();
     muter.mute(); // The Muter starts muting console.log
 
@@ -316,7 +316,7 @@ describe(`Testing README.md examples:`, function () {
   }));
 
   it(`README.md Flushing example works fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    const muter = new Muter(console, 'log'); // Sets a Muter on console.log
     muter.mute(); // The Muter starts muting console.log
     this.stdout.capture();
 
@@ -338,7 +338,7 @@ describe(`Testing README.md examples:`, function () {
   }));
 
   it(`README.md Forgetting example works fine`, unmutedCallback(function () {
-    const muter = Muter(console, 'log'); // Sets a Muter on console.log
+    const muter = new Muter(console, 'log'); // Sets a Muter on console.log
     muter.mute(); // The Muter starts muting console.log
 
     console.log('Lorem ipsum'); // console.log prints nothing
@@ -358,7 +358,7 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md 'muted' and 'captured' Convenience wrappers example works fine`,
     unmutedCallback(function () {
-      const muter = Muter(console);
+      const muter = new Muter(console);
 
       const func = function (...args) {
         console.log(args[0].toString());
@@ -398,7 +398,7 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Format strings example works fine`,
     unmutedCallback(function () {
-      const muter = Muter(console, 'log'); // Sets a Muter on console.log
+      const muter = new Muter(console, 'log'); // Sets a Muter on console.log
 
       muter.mute(); // Mutes console.log
 
@@ -422,7 +422,7 @@ describe(`Testing README.md examples:`, function () {
       } // A custom logging function printing on interleaved console.info and
       // console.log
 
-      const muter = Muter(
+      const muter = new Muter(
         [console, 'info'],
         [console, 'log']
       ); // Sets a Muter on consoleL.info and console.log
@@ -443,16 +443,17 @@ describe(`Testing README.md examples:`, function () {
 
   it(`README.md Special arguments example works fine`,
     unmutedCallback(function () {
-      const muter1 = Muter(process); // Sets Muters on process.stdout.write and
-      // process.stderr.write, therefore allowing to silence the whole process
+      const muter1 = new Muter(process); // Sets Muters on process.stdout.write
+      // and process.stderr.write, therefore allowing to silence the whole
+      // process
       muter1.mute();
       process.stdout.write('Lorem');
       process.stderr.write('ipsum');
       expect(muter1.getLogs()).to.equal('Loremipsum');
       muter1.unmute();
 
-      const muter2 = Muter(console); // Sets Muters on all four logging methods
-      // of console
+      const muter2 = new Muter(console); // Sets Muters on all four logging
+      // methods of console
       muter2.mute();
       console.log('Lorem');
       console.info('ipsum');

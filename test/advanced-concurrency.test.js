@@ -11,12 +11,12 @@ describe('Testing advanced concurrency for Muters:', function () {
   before(presetLoggers);
 
   it('Shared simple Muter', unmutedCallback(function () {
-    const muter1 = Muter(console, 'log'); // Is this.log
-    const muter2 = Muter(// References this.log and this.error
+    const muter1 = new Muter(console, 'log'); // Is this.log
+    const muter2 = new Muter(// References this.log and this.error
       [console, 'log'],
       [console, 'error']
     );
-    const muter3 = Muter(// References this.log and this.info
+    const muter3 = new Muter(// References this.log and this.info
       [console, 'log'],
       [console, 'info']
     );
@@ -249,7 +249,7 @@ describe('Testing advanced concurrency for Muters:', function () {
   }));
 
   it('Direct restore', unmutedCallback(function () {
-    const muter = Muter(
+    const muter = new Muter(
       [console, 'log'],
       [console, 'warn']
     );
@@ -280,10 +280,10 @@ describe('Testing advanced concurrency for Muters:', function () {
     const logger1 = {log: console.log};
     const logger2 = {log: console.log};
 
-    this.logger1 = Muter(logger1, 'log');
-    this.logger2 = Muter(logger2, 'log');
+    this.logger1 = new Muter(logger1, 'log');
+    this.logger2 = new Muter(logger2, 'log');
 
-    const muter = Muter(
+    const muter = new Muter(
       [logger1, 'log', {color: 'cyan'}],
       [logger2, 'log', {color: 'magenta'}]
     );
@@ -313,10 +313,10 @@ describe('Testing advanced concurrency for Muters:', function () {
     const logger1 = {log: console.log};
     const logger2 = {log: console.log};
 
-    this.logger1 = Muter(logger1, 'log', {color: 'green'});
-    this.logger2 = Muter(logger2, 'log', {color: 'red'});
+    this.logger1 = new Muter(logger1, 'log', {color: 'green'});
+    this.logger2 = new Muter(logger2, 'log', {color: 'red'});
 
-    const muter = Muter(
+    const muter = new Muter(
       [logger1, 'log', {color: 'cyan'}],
       [logger2, 'log', {color: 'magenta'}]
     );

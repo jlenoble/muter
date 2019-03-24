@@ -4,24 +4,22 @@ import cleanupWrapper from 'cleanup-wrapper';
 
 export default function Muter (logger, method, options = {}) {
   if (logger === process || logger === undefined) {
-    return Muter(
+    return new Muter(
       [process.stdout, 'write'],
       [process.stderr, 'write']
     );
   } else if (logger === console && method === undefined) {
-    return Muter(
+    return new Muter(
       [console, 'log'],
       [console, 'info'],
       [console, 'warn'],
       [console, 'error']
     );
   } else if (Array.isArray(logger)) {
-    const muter = Object.create(AdvancedMuter.prototype);
     // eslint-disable-next-line prefer-rest-params
-    AdvancedMuter.apply(muter, arguments);
-    return muter;
+    return new AdvancedMuter(...arguments);
   } else if (Object.keys(options).length > 0) {
-    return Muter([logger, method, options]);
+    return new Muter([logger, method, options]);
   } else {
     return new SimpleMuter(logger, method);
   }

@@ -12,7 +12,7 @@ describe(`Testing Muter factory with process.stdout.write:`, function () {
   before(function () {
     expect(logger[method]).to.equal(originalLoggingFunction);
 
-    this.muter = Muter(logger, method);
+    this.muter = new Muter(logger, method);
   });
 
   it(`A muter mutes process.stdout.write by calling 'mute'`,
@@ -141,7 +141,7 @@ describe(`Testing Muter factory with process.stdout.write:`, function () {
     expect(process.stdout.write).to.equal(process.stderr.write);
 
     this.muter.mute();
-    const muter = Muter(process.stderr, 'write');
+    const muter = new Muter(process.stderr, 'write');
     muter.mute();
 
     expect(process.stdout.write).not.to.equal(process.stderr.write);

@@ -14,7 +14,7 @@ methods.forEach(method => {
     before(function () {
       expect(logger[method]).to.equal(originalLoggingFunction);
 
-      this.muter = Muter(logger, method);
+      this.muter = new Muter(logger, method);
     });
 
     it(`A muter mutes console.${method} by calling 'mute'`,
@@ -160,7 +160,7 @@ And this is a second muted and flushed test message
     it(`A muter can print all or individual messages (without flushing)`,
       unmutedCallback(function () {
         this.muter.mute();
-        const muter = Muter(process[method === 'log' ? 'stdout' : 'stderr'],
+        const muter = new Muter(process[method === 'log' ? 'stdout' : 'stderr'],
           'write');
         muter.mute();
 
