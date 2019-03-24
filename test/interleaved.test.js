@@ -4,7 +4,7 @@ import {unmutedCallback, presetLoggers}
 
 import {expect} from 'chai';
 import moment from 'moment';
-import gutil from 'gulp-util';
+import log from 'fancy-log';
 import chalk from 'chalk';
 import ansiRegex from 'ansi-regex';
 
@@ -77,7 +77,7 @@ describe('Testing interleaved Muters:', function() {
     expect(muter.getLogs()).to.equal('log1\ninfo1\ninfo2\nlog2\n');
   }));
 
-  it('Advanced Muters can capture gutil.log', unmutedCallback(function() {
+  it('Advanced Muters can capture fancy-log', unmutedCallback(function() {
     const muter = Muter(
       [console, 'log'],
       [process.stdout, 'write']
@@ -85,8 +85,8 @@ describe('Testing interleaved Muters:', function() {
 
     muter.mute();
 
-    gutil.log('A test message logged by gutil.log');
-    gutil.log('A second test message logged by gutil.log');
+    log('A test message logged by fancy-log');
+    log('A second test message logged by fancy-log');
 
     const logs = muter.getLogs();
     const match = logs.match(
@@ -100,9 +100,9 @@ describe('Testing interleaved Muters:', function() {
 
     const grayStrings = chalk.gray(' ').match(ansiRegex());
     const message = '[' + grayStrings[0] + t1.format('HH:mm:ss') +
-      grayStrings[1] + '] A test message logged by gutil.log\n' +
+      grayStrings[1] + '] A test message logged by fancy-log\n' +
       '[' + grayStrings[0] + t2.format('HH:mm:ss') + grayStrings[1] +
-      '] A second test message logged by gutil.log\n';
+      '] A second test message logged by fancy-log\n';
 
     expect(muter.getLogs()).to.equal(message);
   }));

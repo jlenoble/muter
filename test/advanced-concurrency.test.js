@@ -2,8 +2,6 @@ import Muter from '../src/muter';
 import {unmutedCallback, presetLoggers} from './helpers.help';
 
 import {expect} from 'chai';
-import moment from 'moment';
-import gutil from 'gulp-util';
 import chalk from 'chalk';
 import ansiRegex from 'ansi-regex';
 

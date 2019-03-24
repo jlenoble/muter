@@ -4,7 +4,7 @@ import {presetLoggers, unmutedCallback} from './helpers.help';
 import {expect} from 'chai';
 import chalk from 'chalk';
 import gulp from 'gulp';
-import gutil, {log as gulpLogger} from 'gulp-util';
+import gulpLogger from 'fancy-log';
 
 describe(`Testing README.md examples:`, function() {
 
