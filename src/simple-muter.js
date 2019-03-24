@@ -135,7 +135,7 @@ class SimpleMuter extends EventEmitter {
 
     this.isMuting = true;
 
-    sinon.stub(this.logger, this.method, (...args) => {
+    sinon.stub(this.logger, this.method).callsFake((...args) => {
       this.emit('log', args, this);
     });
   }
@@ -147,7 +147,7 @@ class SimpleMuter extends EventEmitter {
 
     this.isCapturing = true;
 
-    sinon.stub(this.logger, this.method, (...args) => {
+    sinon.stub(this.logger, this.method).callsFake((...args) => {
       this.emit('log', args, this);
       this.boundOriginal(...args);
     });
