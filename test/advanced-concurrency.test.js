@@ -3,15 +3,14 @@ import {unmutedCallback, presetLoggers} from './helpers.help';
 
 import {expect} from 'chai';
 import chalk from 'chalk';
-import ansiRegex from 'ansi-regex';
 
-describe('Testing advanced concurrency for Muters:', function() {
+describe('Testing advanced concurrency for Muters:', function () {
   // Advanced concurrency means when two advanced Muters share one or more
   // simple Muters
 
   before(presetLoggers);
 
-  it('Shared simple Muter', unmutedCallback(function() {
+  it('Shared simple Muter', unmutedCallback(function () {
     const muter1 = Muter(console, 'log'); // Is this.log
     const muter2 = Muter(// References this.log and this.error
       [console, 'log'],
@@ -202,9 +201,10 @@ describe('Testing advanced concurrency for Muters:', function() {
     expect(muter3.getLogs.bind(muter3)).to.throw(Error,
       `Muters referenced by advanced Muter have inconsistent activated state`);
 
-    muter2.unmute(); // A way to put back an advanced Muter in a consistent state,
-    // knowing that it is currently listening; If the advanced Muter were not
-    // listening, then muter2.mute() would also put it back in a consistent state
+    muter2.unmute(); // A way to put back an advanced Muter in a consistent
+    // state, knowing that it is currently listening; If the advanced Muter were
+    // not listening, then muter2.mute() would also put it back in a consistent
+    // state
 
     expect(this.log.isMuting).to.be.false;
     expect(this.error.isMuting).to.be.false;
@@ -248,7 +248,7 @@ describe('Testing advanced concurrency for Muters:', function() {
     expect(muter3.getLogs()).to.equal('');
   }));
 
-  it('Direct restore', unmutedCallback(function() {
+  it('Direct restore', unmutedCallback(function () {
     const muter = Muter(
       [console, 'log'],
       [console, 'warn']
@@ -276,7 +276,7 @@ describe('Testing advanced concurrency for Muters:', function() {
     expect(muter.isMuting).to.be.false;
   }));
 
-  it('Method shared across loggers', unmutedCallback(function() {
+  it('Method shared across loggers', unmutedCallback(function () {
     const logger1 = {log: console.log};
     const logger2 = {log: console.log};
 
@@ -309,7 +309,7 @@ describe('Testing advanced concurrency for Muters:', function() {
     muter.uncapture();
   }));
 
-  it('Advanced color concurrency', unmutedCallback(function() {
+  it('Advanced color concurrency', unmutedCallback(function () {
     const logger1 = {log: console.log};
     const logger2 = {log: console.log};
 
@@ -365,7 +365,7 @@ describe('Testing advanced concurrency for Muters:', function() {
       chalk.green('message5\n'));
     expect(this.logger2.getLogs()).to.equal(chalk.red('message6\n'));
     expect(this.logger1.getLogs({color: 'blue'})).to.equal(
-      chalk.blue('message3\n') +   chalk.blue('message5\n'));
+      chalk.blue('message3\n') + chalk.blue('message5\n'));
     expect(this.logger2.getLogs({color: 'blue'})).to.equal(
       chalk.blue('message6\n')
     );
@@ -394,7 +394,7 @@ describe('Testing advanced concurrency for Muters:', function() {
     expect(this.logger2.getLogs()).to.equal(chalk.red('message6\n') +
       chalk.red('message8\n'));
     expect(this.logger1.getLogs({color: 'blue'})).to.equal(
-      chalk.blue('message3\n') +   chalk.blue('message5\n') +
+      chalk.blue('message3\n') + chalk.blue('message5\n') +
       chalk.blue('message7\n'));
     expect(this.logger2.getLogs({color: 'blue'})).to.equal(
       chalk.blue('message6\n') + chalk.blue('message8\n')
@@ -403,5 +403,4 @@ describe('Testing advanced concurrency for Muters:', function() {
     expect(muter.getLogs()).to.be.undefined;
     expect(muter.getLogs({color: 'blue'})).to.be.undefined;
   }));
-
 });

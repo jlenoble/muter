@@ -4,10 +4,10 @@ const originalLoggingFunctions = {
   log: console.log,
   info: console.info,
   warn: console.warn,
-  error: console.error
+  error: console.error,
 };
 
-function unmute() {
+function unmute () {
   console.log.restore && console.log.restore();
   console.info.restore && console.info.restore();
   console.warn.restore && console.warn.restore();
@@ -18,7 +18,7 @@ function unmute() {
     process.stderr.write.restore();
 }
 
-function removeListeners() {
+function removeListeners () {
   ['log', 'info', 'warn', 'error'].forEach(method => {
     if (this[method]) {
       this[method].removeAllListeners();
@@ -32,12 +32,12 @@ function removeListeners() {
   });
 }
 
-function unmutedCallback(func) {
+function unmutedCallback (func) {
   // Wrapping Mocha callbacks is necessary due to the fact that these tests
   // interfere with Mocha's logs, so we undo output capturing before Mocha
   // reports its results (and can't use 'after' as 'it' messages are
   // output right away)
-  return function() {
+  return function () {
     try {
       func.call(this);
 
@@ -60,8 +60,8 @@ function unmutedCallback(func) {
   };
 };
 
-function presetLoggers() {
-  this.consoleMethods = ['log', 'info', 'warn','error'];
+function presetLoggers () {
+  this.consoleMethods = ['log', 'info', 'warn', 'error'];
   this.stds = ['stdout', 'stderr'];
 
   this.consoleMethods.forEach(method => {

@@ -3,12 +3,12 @@ import chalk from 'chalk';
 import util from 'util';
 import EventEmitter from 'events';
 
-var muters = new Map();
-var loggerKeys = new Map();
-var loggerKeyCounter = 0;
+const muters = new Map();
+const loggerKeys = new Map();
+let loggerKeyCounter = 0;
 
-function key(logger, method) {
-  var loggerKey = loggerKeys.get(logger);
+function key (logger, method) {
+  let loggerKey = loggerKeys.get(logger);
   if (!loggerKey) {
     loggerKeyCounter++;
     loggerKey = `logger${loggerKeyCounter}`;
@@ -17,7 +17,7 @@ function key(logger, method) {
   return `${loggerKey}_${method}`;
 }
 
-function formatter(logger, method) {
+function formatter (logger, method) {
   if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
     return util.format;
   } else if ([process.stdout, process.stderr].includes(logger) &&
@@ -28,7 +28,7 @@ function formatter(logger, method) {
   }
 }
 
-function endString(logger, method) {
+function endString (logger, method) {
   if (logger === console && ['log', 'info', 'warn', 'error'].includes(method)) {
     return '\n';
   } else if ([process.stdout, process.stderr].includes(logger) &&
@@ -39,7 +39,7 @@ function endString(logger, method) {
   }
 }
 
-function unmuter(logger, method) {
+function unmuter (logger, method) {
   return () => {
     const func = logger[method];
     if (func.restore && func.restore.sinon) {
@@ -53,12 +53,10 @@ const _isCapturing = Symbol();
 const _unmute = Symbol();
 
 class SimpleMuter extends EventEmitter {
-
-  constructor(logger, method) {
-
+  constructor (logger, method) {
     super();
 
-    var muter = muters.get(key(logger, method));
+    let muter = muters.get(key(logger, method));
 
     if (muter) {
       return muter;
@@ -67,7 +65,6 @@ class SimpleMuter extends EventEmitter {
     muter = this;
 
     const properties = {
-
       logger: {value: logger},
       method: {value: method},
       original: {value: logger[method]},
@@ -82,31 +79,35 @@ class SimpleMuter extends EventEmitter {
       [_isCapturing]: {value: false, writable: true},
 
       isMuting: {
-        get() {return this[_isMuting];},
-        set(bool) {
+        get () {
+          return this[_isMuting];
+        },
+        set (bool) {
           if (bool) {
             this[_isMuting] = true;
             this[_isCapturing] = false;
           } else {
             this[_isMuting] = false;
           }
-        }
+        },
       },
 
       isCapturing: {
-        get() {return this[_isCapturing];},
-        set(bool) {
+        get () {
+          return this[_isCapturing];
+        },
+        set (bool) {
           if (bool) {
             this[_isMuting] = false;
             this[_isCapturing] = true;
           } else {
             this[_isCapturing] = false;
           }
-        }
+        },
       },
 
       isActivated: {
-        get() {
+        get () {
           if (logger[method].restore) {
             return true;
           } else {
@@ -115,9 +116,8 @@ class SimpleMuter extends EventEmitter {
             this.isCapturing = false;
             return false;
           }
-        }
-      }
-
+        },
+      },
     };
 
     Object.defineProperties(muter, properties);
@@ -125,10 +125,9 @@ class SimpleMuter extends EventEmitter {
     muters.set(key(logger, method), muter);
 
     return muter;
-
   }
 
-  mute() {
+  mute () {
     if (this.isActivated) {
       return;
     }
@@ -140,7 +139,7 @@ class SimpleMuter extends EventEmitter {
     });
   }
 
-  capture() {
+  capture () {
     if (this.isActivated) {
       return;
     }
@@ -153,24 +152,24 @@ class SimpleMuter extends EventEmitter {
     });
   }
 
-  unmute() {
+  unmute () {
     this[_unmute]();
     this.isMuting = false;
   }
 
-  uncapture() {
+  uncapture () {
     this[_unmute]();
     this.isCapturing = false;
   }
 
-  print(nth) {
+  print (nth) {
     if (this.isActivated) {
       if (nth >= 0) {
-        var call = this.logger[this.method].getCalls()[nth];
+        const call = this.logger[this.method].getCalls()[nth];
 
         this.boundOriginal(...call.args);
       } else {
-        var calls = this.logger[this.method].getCalls();
+        const calls = this.logger[this.method].getCalls();
 
         calls.forEach(call => {
           this.boundOriginal(...call.args);
@@ -179,25 +178,25 @@ class SimpleMuter extends EventEmitter {
     }
   }
 
-  getLog(nth, color) {
+  getLog (nth, color) {
     if (this.isActivated) {
-      var call = this.logger[this.method].getCalls()[nth];
+      let call = this.logger[this.method].getCalls()[nth];
 
       call = this.format(...call.args) + this.endString;
 
       if (!color && this.color) {
-        color = this.color;
+        color = this.color; // eslint-disable-line no-param-reassign
       }
 
       return color ? chalk[color](call) : call;
     }
   }
 
-  getLogs(options = {}) {
+  getLogs (options = {}) {
     if (this.isActivated) {
-      var color = options.color;
-      var format = options.format;
-      var endString = options.endString;
+      const color = options.color;
+      let format = options.format;
+      let endString = options.endString;
 
       if (!format) {
         format = this.format;
@@ -207,7 +206,7 @@ class SimpleMuter extends EventEmitter {
         endString = this.endString;
       }
 
-      var calls = this.logger[this.method].getCalls();
+      let calls = this.logger[this.method].getCalls();
 
       calls = calls.map(call => {
         return format(...call.args) + endString;
@@ -219,14 +218,14 @@ class SimpleMuter extends EventEmitter {
     }
   }
 
-  flush(options = {}) {
+  flush (options = {}) {
     if (!this.isActivated) {
       return;
     }
 
     const logs = this.getLogs(options);
 
-    var calls = this.logger[this.method].getCalls();
+    const calls = this.logger[this.method].getCalls();
     calls.forEach(call => {
       this.boundOriginal(...call.args);
     });
@@ -245,7 +244,7 @@ class SimpleMuter extends EventEmitter {
     return logs;
   }
 
-  forget() {
+  forget () {
     if (!this.isActivated) {
       return;
     }
@@ -264,7 +263,6 @@ class SimpleMuter extends EventEmitter {
 
     return logs;
   }
-
 }
 
 export default SimpleMuter;

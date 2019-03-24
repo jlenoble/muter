@@ -2,8 +2,7 @@ import SimpleMuter from './simple-muter';
 import AdvancedMuter from './advanced-muter';
 import cleanupWrapper from 'cleanup-wrapper';
 
-export default function Muter(logger, method, options = {}) {
-
+export default function Muter (logger, method, options = {}) {
   if (logger === process || logger === undefined) {
     return Muter(
       [process.stdout, 'write'],
@@ -17,7 +16,8 @@ export default function Muter(logger, method, options = {}) {
       [console, 'error']
     );
   } else if (Array.isArray(logger)) {
-    var muter = Object.create(AdvancedMuter.prototype);
+    const muter = Object.create(AdvancedMuter.prototype);
+    // eslint-disable-next-line prefer-rest-params
     AdvancedMuter.apply(muter, arguments);
     return muter;
   } else if (Object.keys(options).length > 0) {
@@ -25,30 +25,29 @@ export default function Muter(logger, method, options = {}) {
   } else {
     return new SimpleMuter(logger, method);
   }
-
 }
 
-export function muted(muter, func) {
+export function muted (muter, func) {
   return cleanupWrapper(func, {
     muter,
-    before() {
+    before () {
       this.muter.mute();
     },
-    after() {
+    after () {
       this.muter.unmute();
-    }
+    },
   });
 };
 
-export function captured(muter, func) {
+export function captured (muter, func) {
   return cleanupWrapper(func, {
     muter,
-    before() {
+    before () {
       this.muter.capture();
     },
-    after() {
+    after () {
       this.muter.uncapture();
-    }
+    },
   });
 };
 
