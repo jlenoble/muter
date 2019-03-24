@@ -1,5 +1,8 @@
 # Build
 build
+scratch
+private
+
 
 # Logs
 logs

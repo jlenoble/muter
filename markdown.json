@@ -1,0 +1,7 @@
+{
+  "build": "README.md",
+  "files": ["docs/index.md"],
+  "tableOfContents": {
+    "heading": "# muter\n\nA node package to mute and/or capture console or other loggers' logs"
+  }
+}
