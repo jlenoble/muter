@@ -8,6 +8,8 @@ import log from 'fancy-log';
 import chalk from 'chalk';
 import ansiRegex from 'ansi-regex';
 
+const nodeVersion = require('parse-node-version')(process.version);
+
 describe('Testing interleaved Muters:', function() {
 
   before(presetLoggers);
@@ -83,26 +85,30 @@ describe('Testing interleaved Muters:', function() {
       [process.stdout, 'write']
     );
 
-    muter.mute();
-
+    // muter.mute();
+    muter.capture();
     log('A test message logged by fancy-log');
     log('A second test message logged by fancy-log');
 
     const logs = muter.getLogs();
     const match = logs.match(
-      /^\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+\[.+(\d\d:\d\d:\d\d).+\](.|[\r\n])+$/);
+      /^\[.*(\d\d:\d\d:\d\d).*\](.|[\r\n])+\[.*(\d\d:\d\d:\d\d).*\](.|[\r\n])+$/);
     const t1 = moment(match[1], 'HH:mm:ss');
     const t2 = moment(match[3], 'HH:mm:ss');
     const t3 = moment();
 
-    expect(t1).to.be.at.most(t2);
-    expect(t2).to.be.at.most(t3);
+    expect(t1.toDate()).to.be.at.most(t2.toDate());
+    expect(t2.toDate()).to.be.at.most(t3.toDate());
 
     const grayStrings = chalk.gray(' ').match(ansiRegex());
-    const message = '[' + grayStrings[0] + t1.format('HH:mm:ss') +
-      grayStrings[1] + '] A test message logged by fancy-log\n' +
-      '[' + grayStrings[0] + t2.format('HH:mm:ss') + grayStrings[1] +
-      '] A second test message logged by fancy-log\n';
+    const message = nodeVersion.major < 10
+      ? '[' + grayStrings[0] + t1.format('HH:mm:ss') +
+        grayStrings[1] + '] A test message logged by fancy-log\n' +
+        '[' + grayStrings[0] + t2.format('HH:mm:ss') + grayStrings[1] +
+        '] A second test message logged by fancy-log\n'
+      : '[' + t1.format('HH:mm:ss') + '] A test message logged by fancy-log\n' +
+        '[' + t2.format('HH:mm:ss') +
+        '] A second test message logged by fancy-log\n';
 
     expect(muter.getLogs()).to.equal(message);
   }));
