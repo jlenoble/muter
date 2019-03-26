@@ -2,43 +2,35 @@
 
 A node package to mute and/or capture console or other loggers' logs
 
+  * [Basic usage](#basic-usage)
+    * [Basic muting](#basic-muting)
+    * [Basic capturing](#basic-capturing)
+    * [Using options](#using-options)
+      * [Available options](#available-options)
+      * [Overriding options](#overriding-options)
+    * [Clearing](#clearing)
+  * [Using several Muters in parallel](#using-several-muters-in-parallel)
+    * [Distinct Muters](#distinct-muters)
+    * [Related Muters](#related-muters)
+    * [Overlapping Muters](#overlapping-muters)
+  * [Advanced usage](#advanced-usage)
+    * [Coordinated muting/capturing](#coordinated-muting-capturing)
+    * [Printing](#printing)
+    * [Flushing](#flushing)
+    * [Forgetting](#forgetting)
+  * [CAVEAT](#caveat)
+    * [Side-effects](#side-effects)
+    * ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers)
+  * [Miscellaneous](#miscellaneous)
+    * [Format strings](#format-strings)
+    * [Handling hidden logging methods](#handling-hidden-logging-methods)
+      * [gulp-util logger](#gulp-util-logger)
+    * [Special arguments](#special-arguments)
+  * [Full API](#full-api)
+    * [Muter methods](#muter-methods)
+    * [Utilities](#utilities)
   * [License](#license)
 
-
-# muter
-
-A node package to mute and/or capture console or other loggers' logs.
-
-## Content
-
-* [Basic usage](#basic-usage)
-  * [Basic muting](#basic-muting)
-  * [Basic capturing](#basic-capturing)
-  * [Using options](#using-options)
-    * [Available options](#available-options)
-    * [Overriding options](#overriding-options)
-  * [Clearing](#clearing)
-* [Using several Muters in parallel](#using-several-muters-in-parallel)
-  * [Distinct Muters](#distinct-muters)
-  * [Related Muters](#related-muters)
-  * [Overlapping Muters](#overlapping-muters)
-* [Advanced usage](#advanced-usage)
-  * [Coordinated muting/capturing](#coordinated-mutingcapturing)
-  * [Printing](#printing)
-  * [Flushing](#flushing)
-  * [Forgetting](#forgetting)
-* [CAVEAT](#caveat)
-  * [Side-effects](#side-effects)
-  * ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers)
-* [Miscellaneous](#miscellaneous)
-  * [Format strings](#format-strings)
-  * [Handling hidden logging methods](#handling-hidden-logging-methods)
-    * [gulp-util logger](#gulp-util-logger)
-  * [Special arguments](#special-arguments)
-* [Full API](#full-api)
-  * [Muter methods](#muter-methods)
-  * [Utilities](#utilities)
-* [License](#license)
 
 ## Basic usage
 
@@ -598,15 +590,10 @@ When options are set, the method returns a wrapper around the above singleton.
 * `muted(muter, func)`: Returns a wrapper around function `func` that'll first mute the logging methods handled by `muter`, then run `func` (that supposedly calls the aforementioned logging methods during its run) and finally unmute the logging methods, either upon returning or upon catching an exception. See ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers) for an example.
 * `captured(muter, func)`: Returns a wrapper around function `func` that'll first capture the logging methods handled by `muter`, then run `func` (that supposedly calls the aforementioned logging methods during its run) and finally unmute the logging methods, either upon returning or upon catching an exception. See ['muted' and 'captured' convenience wrappers](#muted-and-captured-convenience-wrappers) for an example.
 
-## License
-
-Muter is [MIT licensed](./LICENSE).
-
-© [Jason Lenoble](mailto:jason.lenoble@gmail.com)
-
 
 ## License
 
 muter is [MIT licensed](./LICENSE).
 
 © 2016-2019 [Jason Lenoble](mailto:jason.lenoble@gmail.com)
+
