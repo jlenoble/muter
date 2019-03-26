@@ -1,8 +1,17 @@
 # Build
 build
-scratch
-private
 
+
+# Test
+tmp
+temp
+scratch
+
+# Dist
+lib
+
+# Hide
+private
 
 # Logs
 logs
