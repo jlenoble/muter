@@ -13,6 +13,9 @@
     "node": ">=10.9.0"
   },
   "main": "lib/muter.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "test": "gulp test"
   },
